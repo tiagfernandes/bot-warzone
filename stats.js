@@ -71,11 +71,11 @@ function sendUserStats(u, tryn, msgObj, err = "") {
 
                 const valueInteger = (f1, f2) => {
                     if (f1 < f2) {
-                        return f1 + " (" + (f1 - f2) + ")";
+                        return new Intl.NumberFormat('fr-FR').format(f1) + " (" + (f1 - f2) + ")";
                     } else if (f1 == f2) {
-                        return f1;
+                        return new Intl.NumberFormat('fr-FR').format(f1) ;
                     } else if (f1 > f2) {
-                        return f1 + " (+" + (f1 - f2) + ")";
+                        return new Intl.NumberFormat('fr-FR').format(f1)  + " (+" + (f1 - f2) + ")";
                     }
                 };
 
@@ -112,7 +112,7 @@ function sendUserStats(u, tryn, msgObj, err = "") {
                         },
                         {
                             name: "Games Played",
-                            value: stats.gamesPlayed,
+                            value: new Intl.NumberFormat('fr-FR').format(stats.gamesPlayed),
                             inline: true,
                         },
                         {
@@ -263,7 +263,7 @@ function sendUserStats(u, tryn, msgObj, err = "") {
                     },
                     {
                         name: "Games Played",
-                        value: stats.gamesPlayed,
+                        value: new Intl.NumberFormat('fr-FR').format(stats.gamesPlayed),
                         inline: true,
                     },
                     {
@@ -281,21 +281,21 @@ function sendUserStats(u, tryn, msgObj, err = "") {
                     },
                     {
                         name: "Total Wins",
-                        value: stats.wins,
+                        value: new Intl.NumberFormat('fr-FR').format(stats.wins),
                         inline: true,
                     },
-                    { name: "Top 5", value: stats.topFive, inline: true },
-                    { name: "Top 10", value: stats.topTen, inline: true },
+                    { name: "Top 5", value: new Intl.NumberFormat('fr-FR').format(stats.topFive), inline: true },
+                    { name: "Top 10", value: new Intl.NumberFormat('fr-FR').format(stats.topTen), inline: true },
                     {
                         name: "KDR",
                         value: stats.kdRatio.toFixed(2),
                         inline: true,
                     },
-                    { name: "Kills", value: stats.kills, inline: true },
-                    { name: "Deaths", value: stats.deaths, inline: true },
-                    { name: "Downs", value: stats.downs, inline: true },
-                    { name: "Revives", value: stats.revives, inline: true },
-                    { name: "Contracts", value: stats.contracts, inline: true }
+                    { name: "Kills", value: new Intl.NumberFormat('fr-FR').format(stats.kills), inline: true },
+                    { name: "Deaths", value: new Intl.NumberFormat('fr-FR').format(stats.deaths), inline: true },
+                    { name: "Downs", value: new Intl.NumberFormat('fr-FR').format(stats.downs), inline: true },
+                    { name: "Revives", value: new Intl.NumberFormat('fr-FR').format(stats.revives), inline: true },
+                    { name: "Contracts", value: new Intl.NumberFormat('fr-FR').format(stats.contracts), inline: true }
                 );
             }
 
