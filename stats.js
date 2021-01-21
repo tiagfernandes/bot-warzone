@@ -52,9 +52,10 @@ function sendUserStats(u, tryn, msgObj, err = "") {
                 )
                 .setColor("PURPLE");
 
-            if (lastStats && lastStats.stats.timePlayed !== stats.timePlayed) {
-                await addStatsFromUser(u.userId, stats);
 
+            await addStatsFromUser(u.userId, stats);
+
+            if (lastStats && lastStats.stats.timePlayed !== stats.timePlayed) {
                 const getSymbole = (f1, f2) => {
                     if (f1 > f2) {
                         return "▲ ";
