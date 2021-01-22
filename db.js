@@ -8,6 +8,11 @@ module.exports = {
     init,
     getLastStatsFromUser,
     addStatsFromUser,
+    getLastMatchFromUser,
+    addMatchFromUser,
+    getAllUsersFromServeur,
+    setScheduleToChannel,
+    findChannel
 };
 require("dotenv").config();
 const MongoClient = require("mongodb").MongoClient;
@@ -26,7 +31,7 @@ async function findChannel(channelId) {
     let channel = await _db.collection("channels").findOne({ channelId });
     // if channel not found in db, create it
     if (channel == null) {
-        channel = { channelId, users: [] };
+        channel = { channelId, users: [], schedule: false};
         await _db.collection("channels").insertOne(channel);
     }
     return channel;
@@ -69,6 +74,20 @@ async function addUserToChannel(channelId, username, platform) {
         {
             $push: {
                 users: { username, platform },
+            },
+        },
+        {
+            upsert: true,
+        }
+    );
+}
+
+async function setScheduleToChannel(channelId, schedule) {
+    await _db.collection("channels").updateOne(
+        { channelId },
+        {
+            $set: {
+                schedule: schedule,
             },
         },
         {
@@ -130,6 +149,16 @@ async function getAllUsers(channelId) {
     return channel.users;
 }
 
+async function getAllUsersFromServeur() {
+    return _db.collection("users")
+        .find()
+        .toArray()
+        .then((items) => {
+            return items;
+        })
+        .catch((err) => console.error(`Failed to find documents: ${err}`));
+}
+
 async function getLastStatsFromUser(userId) {
     let r = await _db.collection("stats").findOne({ userId });
     return r ? r : null;
@@ -162,4 +191,38 @@ async function addStatsFromUser(userId, stats) {
 async function hasStatsFromUser(userId) {
     let stats = await _db.collection("stats").findOne({ userId });
     return stats != null;
+}
+
+async function getLastMatchFromUser(userId) {
+    let r = await _db.collection("match").findOne({ userId });
+    return r ? r : null;
+}
+
+async function addMatchFromUser(userId, matchId) {
+    if (await hasMatchFromUser(userId)) {
+        // Update
+        await _db.collection("match").updateOne(
+            {
+                userId,
+            },
+            {
+                $set: {
+                    matchId,
+                    dateInsert: new Date(),
+                },
+            }
+        );
+    } else {
+        // Add
+        await _db.collection("match").insertOne({
+            userId,
+            matchId,
+            dateInsert: new Date(),
+        });
+    }
+}
+
+async function hasMatchFromUser(userId) {
+    let match = await _db.collection("match").findOne({ userId });
+    return match != null;
 }

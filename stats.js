@@ -1,9 +1,10 @@
 module.exports = {
     sendUserStats,
+    sendUserMatch,
 };
-require("dotenv").config();
+require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 const Discord = require("discord.js");
-const ta = require('time-ago');
+const ta = require("time-ago");
 
 const { getBattleRoyaleInfo, getPlayerProfile } = require("./cod-api");
 const { addStatsFromUser, getLastStatsFromUser } = require("./db");
@@ -17,7 +18,7 @@ function secondsToDhm(seconds) {
 
     var dDisplay = d > 0 ? d + (d == 1 ? " day, " : " days, ") : "";
     var hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
-    var mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes") : "";
+    var mDisplay = m > 0 ? m + (m == 1 ? " min, " : " mins") : "";
     return dDisplay + hDisplay + mDisplay;
 }
 
@@ -52,7 +53,6 @@ function sendUserStats(u, tryn, msgObj, err = "") {
                 )
                 .setColor("PURPLE");
 
-
             await addStatsFromUser(u.userId, stats);
 
             if (lastStats && lastStats.stats.timePlayed !== stats.timePlayed) {
@@ -72,11 +72,21 @@ function sendUserStats(u, tryn, msgObj, err = "") {
 
                 const valueInteger = (f1, f2) => {
                     if (f1 < f2) {
-                        return new Intl.NumberFormat('fr-FR').format(f1) + " (" + (f1 - f2) + ")";
+                        return (
+                            new Intl.NumberFormat("fr-FR").format(f1) +
+                            " (" +
+                            (f1 - f2) +
+                            ")"
+                        );
                     } else if (f1 == f2) {
-                        return new Intl.NumberFormat('fr-FR').format(f1) ;
+                        return new Intl.NumberFormat("fr-FR").format(f1);
                     } else if (f1 > f2) {
-                        return new Intl.NumberFormat('fr-FR').format(f1)  + " (+" + (f1 - f2) + ")";
+                        return (
+                            new Intl.NumberFormat("fr-FR").format(f1) +
+                            " (+" +
+                            (f1 - f2) +
+                            ")"
+                        );
                     }
                 };
 
@@ -97,7 +107,9 @@ function sendUserStats(u, tryn, msgObj, err = "") {
 
                 embed
                     .setDescription(
-                        `Battle Royale\n*Compare to : ${ta.ago(lastStats.dateInsert)}*`
+                        `Battle Royale\n*Compare to : ${ta.ago(
+                            lastStats.dateInsert
+                        )}*`
                     )
                     .addFields(
                         {
@@ -106,14 +118,16 @@ function sendUserStats(u, tryn, msgObj, err = "") {
                                 secondsToDhm(stats.timePlayed) +
                                 " (+ " +
                                 secondsToDhm(
-                                    stats.timePlayed-
+                                    stats.timePlayed -
                                         lastStats.stats.timePlayed
                                 ) +
                                 ")",
                         },
                         {
                             name: "Games Played",
-                            value: new Intl.NumberFormat('fr-FR').format(stats.gamesPlayed),
+                            value: new Intl.NumberFormat("fr-FR").format(
+                                stats.gamesPlayed
+                            ),
                             inline: true,
                         },
                         {
@@ -264,7 +278,9 @@ function sendUserStats(u, tryn, msgObj, err = "") {
                     },
                     {
                         name: "Games Played",
-                        value: new Intl.NumberFormat('fr-FR').format(stats.gamesPlayed),
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            stats.gamesPlayed
+                        ),
                         inline: true,
                     },
                     {
@@ -282,21 +298,65 @@ function sendUserStats(u, tryn, msgObj, err = "") {
                     },
                     {
                         name: "Total Wins",
-                        value: new Intl.NumberFormat('fr-FR').format(stats.wins),
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            stats.wins
+                        ),
                         inline: true,
                     },
-                    { name: "Top 5", value: new Intl.NumberFormat('fr-FR').format(stats.topFive), inline: true },
-                    { name: "Top 10", value: new Intl.NumberFormat('fr-FR').format(stats.topTen), inline: true },
+                    {
+                        name: "Top 5",
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            stats.topFive
+                        ),
+                        inline: true,
+                    },
+                    {
+                        name: "Top 10",
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            stats.topTen
+                        ),
+                        inline: true,
+                    },
                     {
                         name: "KDR",
                         value: stats.kdRatio.toFixed(2),
                         inline: true,
                     },
-                    { name: "Kills", value: new Intl.NumberFormat('fr-FR').format(stats.kills), inline: true },
-                    { name: "Deaths", value: new Intl.NumberFormat('fr-FR').format(stats.deaths), inline: true },
-                    { name: "Downs", value: new Intl.NumberFormat('fr-FR').format(stats.downs), inline: true },
-                    { name: "Revives", value: new Intl.NumberFormat('fr-FR').format(stats.revives), inline: true },
-                    { name: "Contracts", value: new Intl.NumberFormat('fr-FR').format(stats.contracts), inline: true }
+                    {
+                        name: "Kills",
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            stats.kills
+                        ),
+                        inline: true,
+                    },
+                    {
+                        name: "Deaths",
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            stats.deaths
+                        ),
+                        inline: true,
+                    },
+                    {
+                        name: "Downs",
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            stats.downs
+                        ),
+                        inline: true,
+                    },
+                    {
+                        name: "Revives",
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            stats.revives
+                        ),
+                        inline: true,
+                    },
+                    {
+                        name: "Contracts",
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            stats.contracts
+                        ),
+                        inline: true,
+                    }
                 );
             }
 
@@ -325,4 +385,140 @@ function sendUserStats(u, tryn, msgObj, err = "") {
             await msgObj.edit(errMsg);
         }
     };
+}
+
+function displayTop(top) {
+    if (top == 1) {
+        return "1 🥇️";
+    } else if (top == 2) {
+        return "2 🥈️";
+    } else if (top == 3) {
+        return "3 🥉️";
+    } else {
+        return top;
+    }
+}
+
+function unixTime(unixtime) {
+    var u = new Date(unixtime * 1000);
+    return (
+        ("0" + u.getUTCDate()).slice(-2) +
+        "/" +
+        ("0" + u.getUTCMonth() + 1).slice(-2) +
+        "/" +
+        u.getUTCFullYear() +
+        " " +
+        ("0" + u.getUTCHours()).slice(-2) +
+        ":" +
+        ("0" + u.getUTCMinutes()).slice(-2) +
+        ":" +
+        ("0" + u.getUTCSeconds()).slice(-2)
+    );
+}
+
+function getGameMode(mode) {
+    let result = "Battle Royal ";
+    switch (mode) {
+        case "br_brquads":
+            result += "Quads";
+            break;
+        case "br_brtrios":
+            result += "Trio";
+            break;
+        case "br_brduos":
+            result += "Duo";
+            break;
+        default:
+            result += "Solo";
+            break;
+    }
+    return result;
+}
+
+async function sendUserMatch(u, match, msgObj) {
+    try {
+        const embed = new Discord.MessageEmbed();
+        embed
+            .setAuthor(`Warzone Match`)
+            .setTitle(
+                `${u.username}'s team finished ${match.playerStats.teamPlacement} against ${match.teamCount} teams`
+            )
+            .setThumbnail(
+                "https://modernwarfarediscordbot.com/images/gamemodes/br.png"
+            )
+            .setColor("#FFFF00")
+            .setDescription(
+                `**Gamemode**: ${getGameMode(match.mode)}
+                **Match ended at**: ${unixTime(match.utcEndSeconds)}`
+            )
+            .addFields(
+                {
+                    name: "Top",
+                    value: displayTop(match.playerStats.teamPlacement),
+                    inline: true,
+                },
+                {
+                    name: "Match Duration",
+                    value: secondsToDhm(match.playerStats.timePlayed),
+                    inline: true,
+                },
+                {
+                    name: "Team survived for",
+                    value: secondsToDhm(
+                        match.playerStats.teamSurvivalTime / 1000
+                    ),
+                    inline: true,
+                },
+                {
+                    name: "KDR",
+                    value: match.playerStats.kdRatio.toFixed(2),
+                    inline: true,
+                },
+                {
+                    name: "Kills",
+                    value: match.playerStats.kills,
+                    inline: true,
+                },
+                {
+                    name: "Deaths",
+                    value: match.playerStats.deaths,
+                    inline: true,
+                },
+                {
+                    name: "Damage dealt",
+                    value: new Intl.NumberFormat("fr-FR").format(
+                        match.playerStats.damageDone
+                    ),
+                    inline: true,
+                },
+                {
+                    name: "Damage taken",
+                    value: new Intl.NumberFormat("fr-FR").format(
+                        match.playerStats.damageTaken
+                    ),
+                    inline: true,
+                },
+                {
+                    name: "\u200b",
+                    value: "\u200b",
+                    inline: true,
+                }
+            );
+        await msgObj.edit({ embed: embed });
+
+        if (match.playerStats.teamPlacement == 1) {
+            await msgObj.channel.send(
+                "https://tenor.com/view/the-great-gatsby-leonardo-di-caprio-cheers-drink-drinking-gif-4180840"
+            );
+        }
+    } catch (e) {
+        // an issue with the API, configure a retry and notify the user
+        let errMsg =
+            `Encountered the following issue while fetching match ` +
+            `for **${escapeMarkdown(u.username)}** (${u.platform}).\n> ${
+                e.message
+            }`;
+
+        await msgObj.edit(errMsg);
+    }
 }

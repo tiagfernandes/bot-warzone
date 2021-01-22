@@ -2,9 +2,10 @@ module.exports = {
     login,
     getPlayerProfile,
     getBattleRoyaleInfo,
+    getBattleRoyaleMatchs
 };
 
-require("dotenv").config();
+require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 
 const API = require("call-of-duty-api")({ platform: "battle" });
 
@@ -26,6 +27,16 @@ async function getBattleRoyaleInfo(platform, username) {
     try {
         let data = await API.MWBattleData(username, platform);
         return data.br;
+    } catch (e) {
+        console.error(e)
+        return null;
+    }
+}
+
+async function getBattleRoyaleMatchs(platform, username) {
+    try {
+        let data = await API.MWcombatwz(username, platform);
+        return data.matches;
     } catch (e) {
         console.error(e)
         return null;

@@ -1,8 +1,8 @@
 module.exports = controller;
 
 const db = require("./db");
-const { sendUserStats } = require("./stats");
-const { getPlayerProfile } = require("./cod-api");
+const { sendUserStats, sendUserMatch } = require("./stats");
+const { getPlayerProfile, getBattleRoyaleMatchs } = require("./cod-api");
 const util = require("./util");
 const scheduler = require("./scheduler");
 
@@ -39,23 +39,22 @@ const commands = {
     },
     single: {
         method: singleStats,
-        syntax:
-            "single <psn|xbl|battle|acti> <username>",
+        syntax: "single <psn|xbl|battle|acti> <username>",
         help: "Display solo stats",
         rx: /^!wz single (psn|xbl|battle|acti)$/,
     },
     schedule: {
         method: scheduleStats,
-        syntax: "schedule '<cronjob>' <br|rmbl|plndr> [time:3h|3d|1w|2m:1d]",
-        help: "Schedule automatic stats posting",
-        rx: /^!wz schedule '([*\//0-9- ]+)' (br|rmbl|plndr)( ([0-9]+)([h|d|w|m]))?$/,
+        syntax: "schedule",
+        help: "Schedule automatic games stats posting",
+        rx: /^!wz schedule$/,
     },
-    unschedule: {
-        method: unscheduleStats,
-        syntax: "unschedule",
-        help: "Unschedule automatic stats posting",
-        rx: /^!wz unschedule$/,
-    },
+    // unschedule: {
+    //     method: unscheduleStats,
+    //     syntax: "unschedule",
+    //     help: "Unschedule automatic stats posting",
+    //     rx: /^!wz unschedule$/,
+    // },
     help: {
         method: help,
         syntax: "help",
@@ -93,6 +92,7 @@ async function controller(msg) {
         // run command
         await command.method(msg);
     } catch (e) {
+        console.error(e);
         msg.reply(e);
     }
 }
@@ -235,25 +235,70 @@ async function singleStats(msg) {
 }
 
 async function scheduleStats(msg) {
-    let rx = commands["schedule"].rx;
-    let match = msg.content.match(rx);
-    let cron = match[1];
-    let mode = match[2];
-    let time = match[3] ? match[3].trim() : "1d";
+    const channel = await db.findChannel(msg.channel.id);
+    await db.setScheduleToChannel(channel.id, true);
 
-    try {
-        // check if cron is valid
-        if (!util.isValidCron(cron)) {
-            msg.reply("Invalid cron syntax!");
-            return;
+    await msg.channel.send(
+        `Schedule started ! 🔥️`
+    );
+    // TODO Already start
+    // Recuperer le channel et set schedule true
+    setInterval(async () => {
+        try {
+            let users = await db.getAllUsersFromServeur();
+            console.log(users);
+            if (users.length > 0) {
+                users.forEach(async (user) => {
+                    let matchs = await getBattleRoyaleMatchs(
+                        user.platform,
+                        user.username
+                    );
+
+                    const playerLastGame = matchs[0];
+
+                    const username = playerLastGame.player.username;
+                    const matchId = playerLastGame.matchID;
+
+                    console.log(`Traitement de ${username}`);
+
+                    let compareDate = new Date();
+                    compareDate.setMinutes(
+                        compareDate.getMinutes() - process.env.MAX_DURATION
+                    );
+
+                    if (
+                        new Date(playerLastGame.utcEndSeconds * 1000) >=
+                        compareDate
+                    ) {
+                        const lastGame = await db.getLastMatchFromUser(
+                            user.userId
+                        );
+
+                        // Si la derniere partie est enregistrée et que le matchId est le meme ignorer
+                        if (lastGame && lastGame.matchId == matchId) {
+                        } else {
+                            console.log(
+                                `La game ${matchId} de ${username} n'a pas été traitée`
+                            );
+
+                            await db.addMatchFromUser(user.userId, matchId);
+
+                            let msgObj = await msg.channel.send(
+                                `Fetching match for **${util.escapeMarkdown(
+                                    user.username
+                                )}** (${user.platform})...`
+                            );
+
+                            sendUserMatch(user, playerLastGame, msgObj);
+                        }
+                    }
+                });
+            }
+        } catch (Error) {
+            //Handle Exception
+            console.log(Error);
         }
-
-        // schedule message
-        await scheduler.schedule(msg.channel.id, cron, mode, time);
-        msg.reply("Stats scheduled!");
-    } catch (e) {
-        msg.reply(e);
-    }
+    }, process.env.FIND_GAME_INTERVAL * 1000);
 }
 
 async function unscheduleStats(msg) {
