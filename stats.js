@@ -199,13 +199,13 @@ function sendUserStats(u, tryn, msgObj, err = "") {
                         },
                         {
                             name: nameWithPercentage(
-                                stats.kdRatio,
-                                lastStats.stats.kdRatio,
+                                stats.kdRatio.toFixed(2),
+                                lastStats.stats.kdRatio.toFixed(2),
                                 "KDR"
                             ),
                             value: valueInteger(
-                                stats.kdRatio,
-                                lastStats.stats.kdRatio
+                                stats.kdRatio.toFixed(2),
+                                lastStats.stats.kdRatio.toFixed(2)
                             ),
                             inline: true,
                         },
