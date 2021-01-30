@@ -72,21 +72,17 @@ function sendUserStats(u, tryn, msgObj, err = "") {
 
                 const valueInteger = (f1, f2) => {
                     if (f1 < f2) {
-                        return (
-                            new Intl.NumberFormat("fr-FR").format(f1) +
-                            " (" +
-                            ((f1 - f2) % 1 === 0) ? (f1 - f2) : (f1 - f2).toFixed(2) +
-                            ")"
-                        );
+                        return `${new Intl.NumberFormat("fr-FR").format(f1)} (${
+                            (f1 - f2) % 1 === 0 ? f1 - f2 : (f1 - f2).toFixed(2)
+                        })`;
                     } else if (f1 == f2) {
                         return new Intl.NumberFormat("fr-FR").format(f1);
                     } else if (f1 > f2) {
-                        return (
-                            new Intl.NumberFormat("fr-FR").format(f1) +
-                            " (+" +
-                            ((f1 - f2) % 1 === 0) ? (f1 - f2) : (f1 - f2).toFixed(2) +
-                            ")"
-                        );
+                        return `${new Intl.NumberFormat("fr-FR").format(
+                            f1
+                        )} (+${
+                            (f1 - f2) % 1 === 0 ? f1 - f2 : (f1 - f2).toFixed(2)
+                        })`;
                     }
                 };
 
