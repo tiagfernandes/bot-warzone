@@ -263,7 +263,7 @@ async function untrack(msg) {
     }
 }
 
-async function startTrackStats() {
+async function startTrackStats(client) {
     setInterval(async () => {
         try {
             let users = await db.getAllUsersTracked();
@@ -302,8 +302,8 @@ async function startTrackStats() {
                             );
 
                             await db.addMatchFromUser(user.userId, matchId);
-
-                            let msgObj = await user.track.send(
+                            channel = client.channels.cache.get(user.track);
+                            let msgObj = await channel.send(
                                 `Fetching match for **${util.escapeMarkdown(
                                     user.username
                                 )}** (${user.platform})...`

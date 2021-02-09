@@ -14,7 +14,7 @@ var client = null;
 
 async function init(_client) {
     client = _client;
-    startTrackStats();
+    startTrackStats(client);
 }
 
 async function schedule(channelId, cron, mode, time) {
