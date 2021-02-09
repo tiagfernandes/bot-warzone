@@ -7,12 +7,14 @@ module.exports = {
 const { scheduleJob } = require('node-schedule');
 
 const db = require('./db');
+const {startTrackStats} = require('./controller');
 const jobs = {};
 
 var client = null;
 
 async function init(_client) {
     client = _client;
+    startTrackStats();
 }
 
 async function schedule(channelId, cron, mode, time) {

@@ -1,10 +1,10 @@
-const discord = require('discord.js');
+const discord = require("discord.js");
 const bot = new discord.Client();
 
-const db = require('./db');
-const controller = require('./controller');
-const scheduler = require('./scheduler');
-const codApi = require('./cod-api');
+const db = require("./db");
+const { controller } = require("./controller");
+const scheduler = require("./scheduler");
+const codApi = require("./cod-api");
 
 init();
 
@@ -12,7 +12,7 @@ init();
 async function init() {
     await db.init();
     await scheduler.init(bot);
-    await initBot();    
+    await initBot();
 }
 
 async function initBot() {
@@ -22,22 +22,25 @@ async function initBot() {
     codApi.login();
 
     // run when ready
-    bot.on('ready', () => {
-        bot.user.setActivity({name: "for '!wz' commands", type: "WATCHING"});
+    bot.on("ready", () => {
+        bot.user.setActivity({ name: "for '!wz' commands", type: "WATCHING" });
         console.info(`Logged in as ${bot.user.tag}`);
     });
-    
+
     // run when message received
-    bot.on('message', async(msg) => {
+    bot.on("message", async (msg) => {
         // only respond to messages starting with !wz
-        if (!msg.content.startsWith('!wz')) {
+        if (!msg.content.startsWith("!wz")) {
             return;
         }
 
-        console.log(`[${new Date().toISOString()}] [${msg.author.username}] ${msg.content}`);
-        
+        console.log(
+            `[${new Date().toISOString()}] [${msg.author.username}] ${
+                msg.content
+            }`
+        );
+
         // forward to controller
         controller(msg);
-    });    
+    });
 }
-

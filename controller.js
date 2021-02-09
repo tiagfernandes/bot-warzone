@@ -1,4 +1,4 @@
-module.exports = controller;
+module.exports = {controller, startTrackStats};
 
 const db = require("./db");
 const { sendUserStats, sendUserMatch } = require("./stats");
@@ -43,11 +43,17 @@ const commands = {
         help: "Display solo stats",
         rx: /^!wz single (psn|xbl|battle|acti)$/,
     },
-    schedule: {
-        method: scheduleStats,
-        syntax: "schedule",
-        help: "Schedule automatic games stats posting",
-        rx: /^!wz schedule$/,
+    track: {
+        method: track,
+        syntax: "track",
+        help: "Track a player, each new finished game we detect will be publicly posted to the channel the tracking was created in.",
+        rx: /^!wz track$/,
+    },
+    untrack: {
+        method: untrack,
+        syntax: "untrack",
+        help: "Remove a tracking for player.",
+        rx: /^!wz untrack$/,
     },
     // unschedule: {
     //     method: unscheduleStats,
@@ -126,16 +132,10 @@ async function allStats(msg) {
  * @param {*} msg
  */
 async function getUser(msg) {
-    console.log("getUser");
-    console.log(msg.author);
     let user = await db.getUser(msg.author.id);
-    console.log(user);
     if (!user) {
-        console.log("no user");
         msg.reply("You are not registered.");
     } else {
-        console.log("have user");
-        console.log(util.escapeMarkdown(user.username), user.platform);
         let msgObj = await msg.reply(
             `Fetching stats for **${util.escapeMarkdown(user.username)}** (${
                 user.platform
@@ -234,19 +234,39 @@ async function singleStats(msg) {
     }
 }
 
-async function scheduleStats(msg) {
-    const channel = await db.findChannel(msg.channel.id);
-    await db.setScheduleToChannel(channel.id, true);
+async function track(msg) {
+    let user = await db.getUser(msg.author.id);
+    if (!user) {
+        msg.reply("You are not registered.");
+    } else {
+        await db.trackUser(user.userId, msg.channel.id);
+        await msg.reply(
+            `**${util.escapeMarkdown(user.username)}** (${
+                user.platform
+            }) tracked !`
+        );
+    }
+}
 
-    await msg.channel.send(
-        `Schedule started ! 🔥️`
-    );
-    // TODO Already start
-    // Recuperer le channel et set schedule true
+
+async function untrack(msg) {
+    let user = await db.getUser(msg.author.id);
+    if (!user) {
+        msg.reply("You are not registered.");
+    } else {
+        await db.untrackUser(user.userId, msg.channel.id);
+        await msg.reply(
+            `**${util.escapeMarkdown(user.username)}** (${
+                user.platform
+            }) you are untracked !`
+        );
+    }
+}
+
+async function startTrackStats() {
     setInterval(async () => {
         try {
-            let users = await db.getAllUsersFromServeur();
-            console.log(users);
+            let users = await db.getAllUsersTracked();
             if (users.length > 0) {
                 users.forEach(async (user) => {
                     let matchs = await getBattleRoyaleMatchs(
@@ -283,7 +303,7 @@ async function scheduleStats(msg) {
 
                             await db.addMatchFromUser(user.userId, matchId);
 
-                            let msgObj = await msg.channel.send(
+                            let msgObj = await user.track.send(
                                 `Fetching match for **${util.escapeMarkdown(
                                     user.username
                                 )}** (${user.platform})...`
@@ -292,6 +312,8 @@ async function scheduleStats(msg) {
                             sendUserMatch(user, playerLastGame, msgObj);
                         }
                     }
+
+                    console.log(`Fin traitement de ${username}`);
                 });
             }
         } catch (Error) {

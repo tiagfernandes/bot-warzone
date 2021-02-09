@@ -10,9 +10,11 @@ module.exports = {
     addStatsFromUser,
     getLastMatchFromUser,
     addMatchFromUser,
-    getAllUsersFromServeur,
+    getAllUsersTracked,
     setScheduleToChannel,
-    findChannel
+    findChannel,
+    trackUser,
+    untrackUser,
 };
 require("dotenv").config();
 const MongoClient = require("mongodb").MongoClient;
@@ -31,7 +33,7 @@ async function findChannel(channelId) {
     let channel = await _db.collection("channels").findOne({ channelId });
     // if channel not found in db, create it
     if (channel == null) {
-        channel = { channelId, users: [], schedule: false};
+        channel = { channelId, users: [], schedule: false };
         await _db.collection("channels").insertOne(channel);
     }
     return channel;
@@ -149,9 +151,10 @@ async function getAllUsers(channelId) {
     return channel.users;
 }
 
-async function getAllUsersFromServeur() {
-    return _db.collection("users")
-        .find()
+async function getAllUsersTracked() {
+    return _db
+        .collection("users")
+        .find({ track: { $ne: null } })
         .toArray()
         .then((items) => {
             return items;
@@ -225,4 +228,30 @@ async function addMatchFromUser(userId, matchId) {
 async function hasMatchFromUser(userId) {
     let match = await _db.collection("match").findOne({ userId });
     return match != null;
+}
+
+async function trackUser(userId, channelId) {
+    await _db.collection("users").updateOne(
+        {
+            userId,
+        },
+        {
+            $set: {
+                track: channelId,
+            },
+        }
+    );
+}
+
+async function untrackUser(userId) {
+    await _db.collection("users").updateOne(
+        {
+            userId,
+        },
+        {
+            $unset: {
+                track,
+            },
+        }
+    );
 }
