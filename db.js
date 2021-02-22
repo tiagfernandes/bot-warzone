@@ -250,7 +250,7 @@ async function untrackUser(userId) {
         },
         {
             $unset: {
-                track,
+                track: "",
             },
         }
     );

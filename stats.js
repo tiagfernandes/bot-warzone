@@ -396,8 +396,9 @@ function displayTop(top) {
 }
 
 function unixTime(unixtime) {
-    var u = new Date(unixtime * 1000);
-    return (
+    var d = new Date(unixtime * 1000);
+    return d.toLocaleString("fr-FR");
+    /*return (
         ("0" + u.getUTCDate()).slice(-2) +
         "/" +
         ("0" + u.getUTCMonth() + 1).slice(-2) +
@@ -409,7 +410,7 @@ function unixTime(unixtime) {
         ("0" + u.getUTCMinutes()).slice(-2) +
         ":" +
         ("0" + u.getUTCSeconds()).slice(-2)
-    );
+    );*/
 }
 
 function getGameMode(mode) {
@@ -495,8 +496,31 @@ async function sendUserMatch(u, match, msgObj) {
                     inline: true,
                 },
                 {
-                    name: "\u200b",
-                    value: "\u200b",
+                    name: "Headshots",
+                    value: new Intl.NumberFormat("fr-FR").format(
+                        match.playerStats.headshots
+                    ),
+                    inline: true,
+                },
+                {
+                    name: "Assists",
+                    value: new Intl.NumberFormat("fr-FR").format(
+                        match.playerStats.assists
+                    ),
+                    inline: true,
+                },
+                {
+                    name: "Team Wiped",
+                    value: new Intl.NumberFormat("fr-FR").format(
+                        match.playerStats.objectiveTeamWiped
+                    ),
+                    inline: true,
+                },
+                {
+                    name: "Reviver",
+                    value: new Intl.NumberFormat("fr-FR").format(
+                        match.playerStats.objectiveReviver
+                    ),
                     inline: true,
                 }
             );
