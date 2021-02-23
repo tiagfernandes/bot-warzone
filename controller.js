@@ -309,7 +309,7 @@ async function startTrackStats(client) {
                                 )}** (${user.platform})...`
                             );
 
-                            console.log(match.playerStats);
+                            console.log(playerLastGame);
                             sendUserMatch(user, playerLastGame, msgObj);
                         }
                     }
