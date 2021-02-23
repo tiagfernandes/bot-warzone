@@ -511,26 +511,22 @@ async function sendUserMatch(u, match, msgObj) {
                 },
                 {
                     name: "Team Wiped",
-                    value: new Intl.NumberFormat("fr-FR").format(
-                        match.playerStats.objectiveTeamWiped
-                    ),
+                    value: match.playerStats.objectiveTeamWiped,
                     inline: true,
                 },
                 {
                     name: "Reviver",
-                    value: new Intl.NumberFormat("fr-FR").format(
-                        match.playerStats.objectiveReviver
-                    ),
+                    value: match.playerStats.objectiveReviver,
                     inline: true,
                 }
             );
         await msgObj.edit({ embed: embed });
 
-        if (match.playerStats.teamPlacement == 1) {
+        /*if (match.playerStats.teamPlacement == 1) {
             await msgObj.channel.send(
                 "https://tenor.com/view/the-great-gatsby-leonardo-di-caprio-cheers-drink-drinking-gif-4180840"
             );
-        }
+        }*/
     } catch (e) {
         // an issue with the API, configure a retry and notify the user
         let errMsg =
