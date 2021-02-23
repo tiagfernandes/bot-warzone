@@ -511,12 +511,12 @@ async function sendUserMatch(u, match, msgObj) {
                 },
                 {
                     name: "Team Wiped",
-                    value: match.playerStats.objectiveTeamWiped,
+                    value: (match.playerStats.objectiveTeamWiped) ? new Intl.NumberFormat("fr-FR").format(match.playerStats.objectiveTeamWiped) : 0,
                     inline: true,
                 },
                 {
                     name: "Reviver",
-                    value: match.playerStats.objectiveReviver,
+                    value: (match.playerStats.objectiveReviver) ? new Intl.NumberFormat("fr-FR").format(match.playerStats.objectiveReviver) : 0,
                     inline: true,
                 }
             );
