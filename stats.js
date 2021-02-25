@@ -425,120 +425,128 @@ function getGameMode(mode) {
         case "br_brduos":
             result += "Duo";
             break;
-        default:
+        case "br_brsolo":
             result += "Solo";
+            break;
+        case "br_dmz_plnbld":
+            result += "Pillage";
+            break;
+        default:
+            result += "";
             break;
     }
     return result;
 }
 
 async function sendUserMatch(u, match, msgObj) {
-    try {
-        const embed = new Discord.MessageEmbed();
-        embed
-            .setAuthor(`Warzone Match`)
-            .setTitle(
-                `${u.username}'s team finished ${match.playerStats.teamPlacement} against ${match.teamCount} teams`
-            )
-            .setThumbnail(
-                "https://modernwarfarediscordbot.com/images/gamemodes/br.png"
-            )
-            .setColor("#FFFF00")
-            .setDescription(
-                `**Gamemode**: ${getGameMode(match.mode)}
+    if (match.mode != "br_dmz_plnbld") {
+        try {
+            const embed = new Discord.MessageEmbed();
+            embed
+                .setAuthor(`Warzone Match`)
+                .setTitle(
+                    `${u.username}'s team finished ${match.playerStats.teamPlacement} against ${match.teamCount} teams`
+                )
+                .setThumbnail(
+                    "https://modernwarfarediscordbot.com/images/gamemodes/br.png"
+                )
+                .setColor("#FFFF00")
+                .setDescription(
+                    `**Gamemode**: ${getGameMode(match.mode)}
                 **Match ended at**: ${unixTime(match.utcEndSeconds)}`
-            )
-            .addFields(
-                {
-                    name: "Top",
-                    value: displayTop(match.playerStats.teamPlacement),
-                    inline: true,
-                },
-                {
-                    name: "Match Duration",
-                    value: secondsToDhm(match.playerStats.timePlayed),
-                    inline: true,
-                },
-                {
-                    name: "Team survived for",
-                    value: secondsToDhm(
-                        match.playerStats.teamSurvivalTime / 1000
-                    ),
-                    inline: true,
-                },
-                {
-                    name: "KDR",
-                    value: match.playerStats.kdRatio.toFixed(2),
-                    inline: true,
-                },
-                {
-                    name: "Kills",
-                    value: match.playerStats.kills,
-                    inline: true,
-                },
-                {
-                    name: "Deaths",
-                    value: match.playerStats.deaths,
-                    inline: true,
-                },
-                {
-                    name: "Damage dealt",
-                    value: new Intl.NumberFormat("fr-FR").format(
-                        match.playerStats.damageDone
-                    ),
-                    inline: true,
-                },
-                {
-                    name: "Damage taken",
-                    value: new Intl.NumberFormat("fr-FR").format(
-                        match.playerStats.damageTaken
-                    ),
-                    inline: true,
-                },
-                {
-                    name: "Headshots",
-                    value: new Intl.NumberFormat("fr-FR").format(
-                        match.playerStats.headshots
-                    ),
-                    inline: true,
-                },
-                {
-                    name: "Assists",
-                    value: new Intl.NumberFormat("fr-FR").format(
-                        match.playerStats.assists
-                    ),
-                    inline: true,
-                },
-                {
-                    name: "Team Wiped",
-                    value: new Intl.NumberFormat("fr-FR").format(
-                        match.playerStats.objectiveTeamWiped
-                    ),
-                    inline: true,
-                },
-                {
-                    name: "Reviver",
-                    value: new Intl.NumberFormat("fr-FR").format(
-                        match.playerStats.objectiveReviver
-                    ),
-                    inline: true,
-                }
-            );
-        await msgObj.edit({ embed: embed });
+                )
+                .addFields(
+                    {
+                        name: "Top",
+                        value: displayTop(match.playerStats.teamPlacement),
+                        inline: true,
+                    },
+                    {
+                        name: "Match Duration",
+                        value: secondsToDhm(match.playerStats.timePlayed),
+                        inline: true,
+                    },
+                    {
+                        name: "Team survived for",
+                        value: secondsToDhm(
+                            match.playerStats.teamSurvivalTime / 1000
+                        ),
+                        inline: true,
+                    },
+                    {
+                        name: "KDR",
+                        value: match.playerStats.kdRatio.toFixed(2),
+                        inline: true,
+                    },
+                    {
+                        name: "Kills",
+                        value: match.playerStats.kills,
+                        inline: true,
+                    },
+                    {
+                        name: "Deaths",
+                        value: match.playerStats.deaths,
+                        inline: true,
+                    },
+                    {
+                        name: "Damage dealt",
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            match.playerStats.damageDone
+                        ),
+                        inline: true,
+                    },
+                    {
+                        name: "Damage taken",
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            match.playerStats.damageTaken
+                        ),
+                        inline: true,
+                    },
+                    {
+                        name: "Headshots",
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            match.playerStats.headshots
+                        ),
+                        inline: true,
+                    },
+                    {
+                        name: "Assists",
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            match.playerStats.assists
+                        ),
+                        inline: true,
+                    },
+                    {
+                        name: "Team Wiped",
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            match.playerStats.objectiveTeamWiped
+                        ),
+                        inline: true,
+                    },
+                    {
+                        name: "Reviver",
+                        value: new Intl.NumberFormat("fr-FR").format(
+                            match.playerStats.objectiveReviver
+                        ),
+                        inline: true,
+                    }
+                );
+            await msgObj.edit({ embed: embed });
 
-        if (match.playerStats.teamPlacement == 1) {
-            await msgObj.channel.send(
-                "https://tenor.com/view/the-great-gatsby-leonardo-di-caprio-cheers-drink-drinking-gif-4180840"
-            );
+            if (match.playerStats.teamPlacement == 1) {
+                await msgObj.channel.send(
+                    "https://tenor.com/view/the-great-gatsby-leonardo-di-caprio-cheers-drink-drinking-gif-4180840"
+                );
+            }
+        } catch (e) {
+            // an issue with the API, configure a retry and notify the user
+            let errMsg =
+                `Encountered the following issue while fetching match ` +
+                `for **${escapeMarkdown(u.username)}** (${u.platform}).\n> ${
+                    e.message
+                }`;
+
+            await msgObj.edit(errMsg);
         }
-    } catch (e) {
-        // an issue with the API, configure a retry and notify the user
-        let errMsg =
-            `Encountered the following issue while fetching match ` +
-            `for **${escapeMarkdown(u.username)}** (${u.platform}).\n> ${
-                e.message
-            }`;
-
-        await msgObj.edit(errMsg);
     }
 }
