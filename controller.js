@@ -1,4 +1,4 @@
-module.exports = {controller, startTrackStats};
+module.exports = { controller, startTrackStats };
 
 const db = require("./db");
 const { sendUserStats, sendUserMatch } = require("./stats");
@@ -46,7 +46,8 @@ const commands = {
     track: {
         method: track,
         syntax: "track",
-        help: "Track a player, each new finished game we detect will be publicly posted to the channel the tracking was created in.",
+        help:
+            "Track a player, each new finished game we detect will be publicly posted to the channel the tracking was created in.",
         rx: /^!wz track$/,
     },
     untrack: {
@@ -248,7 +249,6 @@ async function track(msg) {
     }
 }
 
-
 async function untrack(msg) {
     let user = await db.getUser(msg.author.id);
     if (!user) {
@@ -309,7 +309,6 @@ async function startTrackStats(client) {
                                 )}** (${user.platform})...`
                             );
 
-                            console.log(playerLastGame);
                             sendUserMatch(user, playerLastGame, msgObj);
                         }
                     }
