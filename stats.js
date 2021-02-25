@@ -398,19 +398,6 @@ function displayTop(top) {
 function unixTime(unixtime) {
     var d = new Date(unixtime * 1000);
     return d.toLocaleString("fr-FR");
-    /*return (
-        ("0" + u.getUTCDate()).slice(-2) +
-        "/" +
-        ("0" + u.getUTCMonth() + 1).slice(-2) +
-        "/" +
-        u.getUTCFullYear() +
-        " " +
-        ("0" + u.getUTCHours()).slice(-2) +
-        ":" +
-        ("0" + u.getUTCMinutes()).slice(-2) +
-        ":" +
-        ("0" + u.getUTCSeconds()).slice(-2)
-    );*/
 }
 
 function getGameMode(mode) {
@@ -518,26 +505,30 @@ async function sendUserMatch(u, match, msgObj) {
                     },
                     {
                         name: "Team Wiped",
-                        value: new Intl.NumberFormat("fr-FR").format(
-                            match.playerStats.objectiveTeamWiped
-                        ),
+                        value: match.playerStats.objectiveTeamWiped
+                            ? new Intl.NumberFormat("fr-FR").format(
+                                  match.playerStats.objectiveTeamWiped
+                              )
+                            : 0,
                         inline: true,
                     },
                     {
                         name: "Reviver",
-                        value: new Intl.NumberFormat("fr-FR").format(
-                            match.playerStats.objectiveReviver
-                        ),
+                        value: match.playerStats.objectiveReviver
+                            ? new Intl.NumberFormat("fr-FR").format(
+                                  match.playerStats.objectiveReviver
+                              )
+                            : 0,
                         inline: true,
                     }
                 );
             await msgObj.edit({ embed: embed });
 
-            if (match.playerStats.teamPlacement == 1) {
+            /*if (match.playerStats.teamPlacement == 1) {
                 await msgObj.channel.send(
                     "https://tenor.com/view/the-great-gatsby-leonardo-di-caprio-cheers-drink-drinking-gif-4180840"
                 );
-            }
+            }*/
         } catch (e) {
             // an issue with the API, configure a retry and notify the user
             let errMsg =
