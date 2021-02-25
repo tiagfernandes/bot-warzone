@@ -55,7 +55,7 @@ function sendUserStats(u, tryn, msgObj, err = "") {
 
             await addStatsFromUser(u.userId, stats);
 
-            if (lastStats && lastStats.stats.timePlayed !== stats.timePlayed) {
+            if (lastStats && lastStats.stats && lastStats.stats.timePlayed !== stats.timePlayed) {
                 const getSymbole = (f1, f2) => {
                     if (f1 > f2) {
                         return "▲ ";
