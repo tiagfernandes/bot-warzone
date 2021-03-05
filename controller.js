@@ -1,7 +1,7 @@
 module.exports = { controller, startTrackStats };
 
 const db = require("./db");
-const { sendUserStats, sendUserMatch } = require("./stats");
+const { sendUserStats, sendUserMatch, sendMatchStats } = require("./stats");
 const { getPlayerProfile, getBattleRoyaleMatchs } = require("./cod-api");
 const util = require("./util");
 const scheduler = require("./scheduler");
@@ -56,12 +56,12 @@ const commands = {
         help: "Remove a tracking for player.",
         rx: /^!wz untrack$/,
     },
-    // unschedule: {
-    //     method: unscheduleStats,
-    //     syntax: "unschedule",
-    //     help: "Unschedule automatic stats posting",
-    //     rx: /^!wz unschedule$/,
-    // },
+    unschedule: {
+        method: unscheduleStats,
+        syntax: "unschedule",
+        help: "Unschedule automatic stats posting",
+        rx: /^!wz unschedule$/,
+    },
     help: {
         method: help,
         syntax: "help",
@@ -74,6 +74,12 @@ const commands = {
         help: "Randomly splits users into teams",
         rx: /^!wz teams [0-9]+$/,
     },
+    // test: {
+    //     method: test,
+    //     syntax: "test",
+    //     help: "Randomly splits users into teams",
+    //     rx: /^!wz test$/,
+    // },
 };
 
 async function controller(msg) {
@@ -181,7 +187,9 @@ async function registerUser(msg) {
                 `**${player.username}** (${player.platform}) has been registered!`
             );
         } else {
-            msg.reply(`**${username}** (${platform}) does not exist!`);
+            msg.reply(
+                `**${username}** (${platform}) does not exist or private (see https://my.callofduty.com/fr/dashboard)!`
+            );
         }
     }
 }
@@ -263,7 +271,7 @@ async function untrack(msg) {
     }
 }
 
-async function startTrackStats(client) {
+async function startTrackStatsOld(client) {
     setInterval(async () => {
         try {
             let users = await db.getAllUsersTracked();
@@ -319,6 +327,83 @@ async function startTrackStats(client) {
         } catch (Error) {
             //Handle Exception
             console.log(Error);
+        }
+    }, process.env.FIND_GAME_INTERVAL * 1000);
+}
+
+async function startTrackStats(client) {
+    setInterval(async () => {
+        try {
+            // Get all users tracked
+            let users = await db.getAllUsersTracked();
+
+            // If no users, do nothing
+            if (users.length > 0) {
+                let arrayMatchs = [];
+
+                // For each users
+                for (const user of users) {
+                    console.log(`Traitement de ${user.username}`);
+                    try {
+                        // Get lasts matchs of user
+                        let matchs = await getBattleRoyaleMatchs(
+                            user.platform,
+                            user.username
+                        );
+
+                        // Select the last one
+                        const playerLastGame = matchs[0];
+                        const matchId = playerLastGame.matchID;
+
+                        // New date to compare if math is recent
+                        let compareDate = new Date();
+                        compareDate.setMinutes(
+                            compareDate.getMinutes() - process.env.MAX_DURATION
+                        );
+
+                        if (
+                            new Date(playerLastGame.utcEndSeconds * 1000) >=
+                            compareDate
+                        ) {
+                            // Get last game Saved
+                            const lastGame = await db.getLastMatchFromUser(
+                                user.userId
+                            );
+
+                            // Si la derniere partie est enregistrée et que le matchId est le meme ignorer
+                            if (lastGame && lastGame.matchId != matchId) {
+                                console.log(
+                                    `La game ${matchId} de ${user.username} n'a pas été traitée`
+                                );
+
+                                // Set Last match in bdd
+                                await db.addMatchFromUser(user.userId, matchId);
+
+                                const stats = {
+                                    user,
+                                    playerLastGame,
+                                };
+
+                                arrayMatchs[playerLastGame.matchID]
+                                    ? arrayMatchs[playerLastGame.matchID].push(
+                                          stats
+                                      )
+                                    : (arrayMatchs[playerLastGame.matchID] = [
+                                          stats,
+                                      ]);
+                            }
+                        }
+                    } catch (Error) {
+                        console.log(Error);
+                    }
+                    console.log(`Fin traitement de ${user.username}`);
+                }
+
+                sendMatchStats(arrayMatchs, client);
+            }
+        } catch (Error) {
+            //Handle Exception
+            console.error(Error);
         }
     }, process.env.FIND_GAME_INTERVAL * 1000);
 }
