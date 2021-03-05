@@ -309,15 +309,18 @@ async function startTrackStatsOld(client) {
                                 `La game ${matchId} de ${username} n'a pas été traitée`
                             );
 
-                            await db.addMatchFromUser(user.userId, matchId);
-                            channel = client.channels.cache.get(user.track);
-                            let msgObj = await channel.send(
-                                `Fetching match for **${util.escapeMarkdown(
-                                    user.username
-                                )}** (${user.platform})...`
-                            );
+                            
+                            if (playerLastGame.mode != "br_dmz_plnbld") {
+                                await db.addMatchFromUser(user.userId, matchId);
+                                channel = client.channels.cache.get(user.track);
+                                let msgObj = await channel.send(
+                                    `Fetching match for **${util.escapeMarkdown(
+                                        user.username
+                                    )}** (${user.platform})...`
+                                );
 
-                            sendUserMatch(user, playerLastGame, msgObj);
+                                sendUserMatch(user, playerLastGame, msgObj);
+                            }
                         }
                     }
 
