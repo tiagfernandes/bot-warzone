@@ -56,24 +56,24 @@ const commands = {
         help: "Remove a tracking for player.",
         rx: /^!wz untrack$/,
     },
-    unschedule: {
-        method: unscheduleStats,
-        syntax: "unschedule",
-        help: "Unschedule automatic stats posting",
-        rx: /^!wz unschedule$/,
-    },
+    // unschedule: {
+    //     method: unscheduleStats,
+    //     syntax: "unschedule",
+    //     help: "Unschedule automatic stats posting",
+    //     rx: /^!wz unschedule$/,
+    // },
     help: {
         method: help,
         syntax: "help",
         help: "Shows this help",
         rx: /^!wz help$/,
     },
-    teams: {
-        method: teamSplit,
-        syntax: "teams <players-per-team>",
-        help: "Randomly splits users into teams",
-        rx: /^!wz teams [0-9]+$/,
-    },
+    // teams: {
+    //     method: teamSplit,
+    //     syntax: "teams <players-per-team>",
+    //     help: "Randomly splits users into teams",
+    //     rx: /^!wz teams [0-9]+$/,
+    // },
     // test: {
     //     method: test,
     //     syntax: "test",
@@ -271,69 +271,6 @@ async function untrack(msg) {
     }
 }
 
-async function startTrackStatsOld(client) {
-    setInterval(async () => {
-        try {
-            let users = await db.getAllUsersTracked();
-            if (users.length > 0) {
-                users.forEach(async (user) => {
-                    let matchs = await getBattleRoyaleMatchs(
-                        user.platform,
-                        user.username
-                    );
-
-                    const playerLastGame = matchs[0];
-
-                    const username = playerLastGame.player.username;
-                    const matchId = playerLastGame.matchID;
-
-                    console.log(`Traitement de ${username}`);
-
-                    let compareDate = new Date();
-                    compareDate.setMinutes(
-                        compareDate.getMinutes() - process.env.MAX_DURATION
-                    );
-
-                    if (
-                        new Date(playerLastGame.utcEndSeconds * 1000) >=
-                        compareDate
-                    ) {
-                        const lastGame = await db.getLastMatchFromUser(
-                            user.userId
-                        );
-
-                        // Si la derniere partie est enregistrée et que le matchId est le meme ignorer
-                        if (lastGame && lastGame.matchId == matchId) {
-                        } else {
-                            console.log(
-                                `La game ${matchId} de ${username} n'a pas été traitée`
-                            );
-
-                            
-                            if (playerLastGame.mode != "br_dmz_plnbld") {
-                                await db.addMatchFromUser(user.userId, matchId);
-                                channel = client.channels.cache.get(user.track);
-                                let msgObj = await channel.send(
-                                    `Fetching match for **${util.escapeMarkdown(
-                                        user.username
-                                    )}** (${user.platform})...`
-                                );
-
-                                sendUserMatch(user, playerLastGame, msgObj);
-                            }
-                        }
-                    }
-
-                    console.log(`Fin traitement de ${username}`);
-                });
-            }
-        } catch (Error) {
-            //Handle Exception
-            console.log(Error);
-        }
-    }, process.env.FIND_GAME_INTERVAL * 1000);
-}
-
 async function startTrackStats(client) {
     setInterval(async () => {
         try {
@@ -374,7 +311,7 @@ async function startTrackStats(client) {
                             );
 
                             // Si la derniere partie est enregistrée et que le matchId est le meme ignorer
-                            if (lastGame && lastGame.matchId != matchId) {
+                            if (!lastGame || lastGame.matchId != matchId) {
                                 console.log(
                                     `La game ${matchId} de ${user.username} n'a pas été traitée`
                                 );
