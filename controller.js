@@ -301,6 +301,7 @@ async function startTrackStatsOld(client) {
                         const lastGame = await db.getLastMatchFromUser(
                             user.userId
                         );
+                        console.log(lastGame);
 
                         // Si la derniere partie est enregistrée et que le matchId est le meme ignorer
                         if (lastGame && lastGame.matchId == matchId) {
