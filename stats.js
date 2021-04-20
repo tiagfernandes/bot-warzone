@@ -411,6 +411,7 @@ function unixTime(unixtime) {
 
 function getGameMode(mode) {
     let result = "Battle Royal";
+    
     switch (mode) {
         case "br_brquads":
         case "mw-Br_brz_brquads":

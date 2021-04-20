@@ -69,6 +69,7 @@ const commands = {
         rx: /^!wz help$/,
     },
     // teams: {
+        
     //     method: teamSplit,
     //     syntax: "teams <players-per-team>",
     //     help: "Randomly splits users into teams",
