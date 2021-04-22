@@ -7,6 +7,8 @@ module.exports = {
 require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 const table = require("markdown-table");
 
+const generateImageMatch = require("image-warzone");
+
 const Discord = require("discord.js");
 const ta = require("time-ago");
 
@@ -411,7 +413,7 @@ function unixTime(unixtime) {
 
 function getGameMode(mode) {
     let result = "Battle Royal";
-    
+
     switch (mode) {
         case "br_brquads":
         case "mw-Br_brz_brquads":
@@ -537,11 +539,6 @@ async function sendUserMatch(u, match, msgObj) {
                 );
             await msgObj.edit({ embed: embed });
 
-            /*if (match.playerStats.teamPlacement == 1) {
-                await msgObj.channel.send(
-                    "https://tenor.com/view/the-great-gatsby-leonardo-di-caprio-cheers-drink-drinking-gif-4180840"
-                );
-            }*/
         } catch (e) {
             // an issue with the API, configure a retry and notify the user
             let errMsg =
@@ -778,223 +775,11 @@ Team finished **${displayTop(
 }
 
 async function sendMatchStatsTest(matchs, client) {
-    console.log(matchs);
-    /*    for (const matchId in matchs) {
-        const channel = client.channels.cache.get(matchs[matchId][0].user.track);
+    matchs.forEach((match) => {
+        generateImageMatch(match).then((image) => {
+            const sfattach = new Discord.MessageAttachment(image, "stats.png");
 
-        if (matchs[matchId][0].playerLastGame.mode != "br_dmz_plnbld") {
-            if (matchs[matchId].length > 1) {
-                let arrayTable = [
-                    [""],
-                    ["KDR"],
-                    ["Kills"],
-                    ["Deaths"],
-                    ["Damage dealt"],
-                    ["Damage taken"],
-                    ["Headshots"],
-                    ["Assists"],
-                    ["Team Wiped"],
-                    ["Reviver"],
-                ];
-
-                let arrayAlign = ["l"];
-
-                let message = `
-> **Warzone Match**
-Team finished **${displayTop(
-                    matchs[matchId][0].playerLastGame.playerStats.teamPlacement
-                )}** against ${
-                    matchs[matchId][0].playerLastGame.teamCount
-                } teams
-*Gamemode: ${getGameMode(matchs[matchId][0].playerLastGame.mode)}*
-*Match ended at: ${unixTime(matchs[matchId][0].playerLastGame.utcEndSeconds)}*
-`;
-                matchs[matchId].forEach((match) => {
-
-                    console.log(matchs.playerLastGame);
-                    
-                    arrayTable[0] = [...arrayTable[0], match.user.username];
-                    arrayTable[1] = [
-                        ...arrayTable[1],
-                        match.playerLastGame.playerStats.kdRatio.toFixed(2),
-                    ];
-                    arrayTable[2] = [
-                        ...arrayTable[2],
-                        match.playerLastGame.playerStats.kills,
-                    ];
-                    arrayTable[3] = [
-                        ...arrayTable[3],
-                        match.playerLastGame.playerStats.deaths,
-                    ];
-                    arrayTable[4] = [
-                        ...arrayTable[4],
-                        new Intl.NumberFormat("fr-FR").format(
-                            match.playerLastGame.playerStats.damageDone
-                        ),
-                    ];
-                    arrayTable[5] = [
-                        ...arrayTable[5],
-                        new Intl.NumberFormat("fr-FR").format(
-                            match.playerLastGame.playerStats.damageTaken
-                        ),
-                    ];
-                    arrayTable[6] = [
-                        ...arrayTable[6],
-                        match.playerLastGame.playerStats.headshots,
-                    ];
-                    arrayTable[7] = [
-                        ...arrayTable[7],
-                        match.playerLastGame.playerStats.assists,
-                    ];
-                    arrayTable[8] = [
-                        ...arrayTable[8],
-                        match.playerLastGame.playerStats.objectiveTeamWiped
-                            ? new Intl.NumberFormat("fr-FR").format(
-                                  match.playerLastGame.playerStats
-                                      .objectiveTeamWiped
-                              )
-                            : 0,
-                    ];
-                    arrayTable[9] = [
-                        ...arrayTable[9],
-                        match.playerLastGame.playerStats.objectiveReviver
-                            ? new Intl.NumberFormat("fr-FR").format(
-                                  match.playerLastGame.playerStats
-                                      .objectiveReviver
-                              )
-                            : 0,
-                    ];
-
-                    arrayAlign = [...arrayAlign, "r"];
-                });
-
-                message += `\`\`\`${table(arrayTable, {
-                    align: arrayAlign,
-                })}\`\`\``;
-
-                await channel.send(message);
-            } else {                    
-                const embed = new Discord.MessageEmbed();
-                embed
-                    .setAuthor(`Warzone Match`)
-                    .setTitle(
-                        `${matchs[matchId][0].user.username}'s team finished ${matchs[matchId][0].playerLastGame.playerStats.teamPlacement} against ${matchs[matchId][0].playerLastGame.teamCount} teams`
-                    )
-                    .setThumbnail(
-                        "https://modernwarfarediscordbot.com/images/gamemodes/br.png"
-                    )
-                    .setColor("#FFFF00")
-                    .setDescription(
-                        `**Gamemode**: ${getGameMode(
-                            matchs[matchId][0].playerLastGame.mode
-                        )}
-                **Match ended at**: ${unixTime(
-                    matchs[matchId][0].playerLastGame.utcEndSeconds
-                )}`
-                    )
-                    .addFields(
-                        {
-                            name: "Top",
-                            value: displayTop(
-                                matchs[matchId][0].playerLastGame.playerStats
-                                    .teamPlacement
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: "Match Duration",
-                            value: secondsToDhm(
-                                matchs[matchId][0].playerLastGame.playerStats
-                                    .timePlayed
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: "Team survived for",
-                            value: secondsToDhm(
-                                matchs[matchId][0].playerLastGame.playerStats
-                                    .teamSurvivalTime / 1000
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: "KDR",
-                            value: matchs[
-                                matchId
-                            ][0].playerLastGame.playerStats.kdRatio.toFixed(2),
-                            inline: true,
-                        },
-                        {
-                            name: "Kills",
-                            value:
-                                matchs[matchId][0].playerLastGame.playerStats
-                                    .kills,
-                            inline: true,
-                        },
-                        {
-                            name: "Deaths",
-                            value:
-                                matchs[matchId][0].playerLastGame.playerStats
-                                    .deaths,
-                            inline: true,
-                        },
-                        {
-                            name: "Damage dealt",
-                            value: new Intl.NumberFormat("fr-FR").format(
-                                matchs[matchId][0].playerLastGame.playerStats
-                                    .damageDone
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: "Damage taken",
-                            value: new Intl.NumberFormat("fr-FR").format(
-                                matchs[matchId][0].playerLastGame.playerStats
-                                    .damageTaken
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: "Headshots",
-                            value: new Intl.NumberFormat("fr-FR").format(
-                                matchs[matchId][0].playerLastGame.playerStats
-                                    .headshots
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: "Assists",
-                            value: new Intl.NumberFormat("fr-FR").format(
-                                matchs[matchId][0].playerLastGame.playerStats
-                                    .assists
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: "Team Wiped",
-                            value: matchs[matchId][0].playerLastGame.playerStats
-                                .objectiveTeamWiped
-                                ? new Intl.NumberFormat("fr-FR").format(
-                                      matchs[matchId][0].playerLastGame
-                                          .playerStats.objectiveTeamWiped
-                                  )
-                                : 0,
-                            inline: true,
-                        },
-                        {
-                            name: "Reviver",
-                            value: matchs[matchId][0].playerLastGame.playerStats
-                                .objectiveReviver
-                                ? new Intl.NumberFormat("fr-FR").format(
-                                      matchs[matchId][0].playerLastGame
-                                          .playerStats.objectiveReviver
-                                  )
-                                : 0,
-                            inline: true,
-                        }
-                    );
-                await channel.send({ embed });
-            }
-        }
-    }*/
+            client.channels.cache.get(match.channel).send(sfattach);
+        });
+    });
 }

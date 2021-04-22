@@ -1,7 +1,12 @@
 module.exports = { controller, startTrackStats };
 
 const db = require("./db");
-const { sendUserStats, sendUserMatch, sendMatchStats, sendMatchStatsTest } = require("./stats");
+const {
+    sendUserStats,
+    sendUserMatch,
+    sendMatchStats,
+    sendMatchStatsTest,
+} = require("./stats");
 const { getPlayerProfile, getBattleRoyaleMatchs } = require("./cod-api");
 const util = require("./util");
 const scheduler = require("./scheduler");
@@ -69,7 +74,6 @@ const commands = {
         rx: /^!wz help$/,
     },
     // teams: {
-        
     //     method: teamSplit,
     //     syntax: "teams <players-per-team>",
     //     help: "Randomly splits users into teams",
@@ -272,7 +276,7 @@ async function untrack(msg) {
     }
 }
 
-async function startTrackStats(client) {
+async function startTrackStatsTempo(client) {
     setInterval(async () => {
         try {
             // Get all users tracked
@@ -386,77 +390,145 @@ async function teamSplit(msg) {
     }
 }
 
-async function test() {
-    try {
-        // Get all users tracked
-        let users = await db.getAllUsersTracked();
+function getGameMode(mode) {
+    let result = "";
 
-        // If no users, do nothing
-        if (users.length > 0) {
-            let arrayMatchs = [];
+    switch (mode) {
+        case "br_brquads":
+        case "mw-Br_brz_brquads":
+        case "br_brz_brquads":
+            result += "QUADS";
+            break;
+        case "br_brtrios":
+        case "mw-Br_brz_brtrios":
+        case "br_brz_brtrios":
+            result += "TRIOS";
+            break;
+        case "br_brduos":
+        case "mw-Br_brz_brduos":
+        case "br_brz_brduos":
+            result += "DUO";
+            break;
+        case "br_brsolo":
+            result += "SOLO";
+            break;
+        default:
+            result += "BATTLE";
+            break;
+    }
+    return result;
+}
 
-            // For each users
-            for (const user of users) {
-                console.log(`Traitement de ${user.username}`);
-                try {
-                    // Get lasts matchs of user
-                    let matchs = await getBattleRoyaleMatchs(
-                        user.platform,
-                        user.username
-                    );
+async function startTrackStats(client) {
+    setInterval(async () => {
+        try {
+            // Get all users tracked
+            let users = await db.getAllUsersTracked();
 
-                    // Select the last one
-                    const playerLastGame = matchs[0];
-                    const matchId = playerLastGame.matchID;
+            // If no users, do nothing
+            if (users.length > 0) {
+                let arrayMatchs = [];
 
-                    // New date to compare if math is recent
-                    let compareDate = new Date();
-                    compareDate.setMinutes(
-                        compareDate.getMinutes() - process.env.MAX_DURATION
-                    );
-
-                    if (
-                        new Date(playerLastGame.utcEndSeconds * 1000) >=
-                        compareDate
-                    ) {
-                        // Get last game Saved
-                        const lastGame = await db.getLastMatchFromUser(
-                            user.userId
+                // For each users
+                for (const user of users) {
+                    console.log(`Traitement de ${user.username}`);
+                    try {
+                        // Get lasts matchs of user
+                        let matchs = await getBattleRoyaleMatchs(
+                            user.platform,
+                            user.username
                         );
 
-                        // Si la derniere partie est enregistrée et que le matchId est le meme ignorer
-                        if (!lastGame || lastGame.matchId != matchId) {
-                            console.log(
-                                `La game ${matchId} de ${user.username} n'a pas été traitée`
+                        // Select the last one
+                        const playerLastGame = matchs[0];
+                        const matchId = playerLastGame.matchID;
+
+                        // New date to compare if math is recent
+                        let compareDate = new Date();
+                        compareDate.setMinutes(
+                            compareDate.getMinutes() - process.env.MAX_DURATION
+                        );
+
+                        if (
+                            new Date(playerLastGame.utcEndSeconds * 1000) >=
+                            compareDate
+                        ) {
+                            // Get last game Saved
+                            const lastGame = await db.getLastMatchFromUser(
+                                user.userId
                             );
 
-                            // Set Last match in bdd
-                            await db.addMatchFromUser(user.userId, matchId);
+                            // Si la derniere partie est enregistrée et que le matchId est le meme ignorer
+                            if (!lastGame || lastGame.matchId != matchId) {
+                                console.log(
+                                    `La game ${matchId} de ${user.username} n'a pas été traitée`
+                                );
 
-                            const stats = {
-                                user,
-                                playerLastGame,
-                            };
+                                // Set Last match in bdd
+                                await db.addMatchFromUser(user.userId, matchId);
 
-                            arrayMatchs[playerLastGame.matchID]
-                                ? arrayMatchs[playerLastGame.matchID].push(
-                                      stats
-                                  )
-                                : (arrayMatchs[playerLastGame.matchID] = [
-                                      stats,
-                                  ]);
+                                const stats = {
+                                    matchId: playerLastGame.matchID,
+                                    channel: user.track,
+                                    top:
+                                        playerLastGame.playerStats
+                                            .teamPlacement,
+                                    mode: getGameMode(playerLastGame.mode),
+                                    matchEnded: playerLastGame.utcEndSeconds,
+                                    players: [
+                                        {
+                                            playerName:
+                                                playerLastGame.player.username,
+                                            kdr:
+                                                playerLastGame.playerStats
+                                                    .kdRatio,
+                                            kills:
+                                                playerLastGame.playerStats
+                                                    .kills,
+                                            deaths:
+                                                playerLastGame.playerStats
+                                                    .deaths,
+                                            headshots:
+                                                playerLastGame.playerStats
+                                                    .headshots,
+                                            damageDealt:
+                                                playerLastGame.playerStats
+                                                    .damageDone,
+                                            damageTaken:
+                                                playerLastGame.playerStats
+                                                    .damageTaken,
+                                            reviver: playerLastGame.playerStats
+                                                .objectiveReviver
+                                                ? playerLastGame.playerStats
+                                                      .objectiveReviver
+                                                : 0,
+                                        },
+                                    ],
+                                };
+
+                                const matchIndex = arrayMatchs.findIndex(
+                                    (e) => e.matchId == playerLastGame.matchID
+                                );
+                                console.log(matchIndex);
+                                if (matchIndex >= 0) {
+                                    arrayMatchs[matchIndex].players.push(
+                                        stats.players[0]
+                                    );
+                                } else {
+                                    arrayMatchs.push(stats);
+                                }
+                            }
                         }
+                    } catch (Error) {
+                        console.log(Error);
                     }
-                } catch (Error) {
-                    console.log(Error);
+                    console.log(`Fin traitement de ${user.username}`);
                 }
-                console.log(`Fin traitement de ${user.username}`);
+                sendMatchStatsTest(arrayMatchs, client);
             }
-
-            sendMatchStatsTest(arrayMatchs, client);
+        } catch (Error) {
+            //Handle Exception
+            console.error(Error);
         }
-    } catch (Error) {
-        //Handle Exception
-        console.error(Error);
-    }
+    }, process.env.FIND_GAME_INTERVAL * 1000);
 }
