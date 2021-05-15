@@ -3,6 +3,7 @@ module.exports = {
     getPlayerProfile,
     getBattleRoyaleInfo,
     getBattleRoyaleMatchs,
+    getBattleInfoTest,
 };
 
 require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
@@ -36,4 +37,8 @@ async function getBattleRoyaleInfo(platform, username) {
 async function getBattleRoyaleMatchs(platform, username) {
     let data = await API.MWcombatwz(username, platform);
     return data.matches;
+}
+
+async function getBattleInfoTest(platform, username) {
+    return await API.MWwz(username, platform);
 }

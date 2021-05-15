@@ -7,7 +7,11 @@ const {
     sendMatchStats,
     sendMatchStatsTest,
 } = require("./stats");
-const { getPlayerProfile, getBattleRoyaleMatchs } = require("./cod-api");
+const {
+    getPlayerProfile,
+    getBattleRoyaleMatchs,
+    getBattleInfoTest,
+} = require("./cod-api");
 const util = require("./util");
 const scheduler = require("./scheduler");
 
@@ -79,12 +83,12 @@ const commands = {
     //     help: "Randomly splits users into teams",
     //     rx: /^!wz teams [0-9]+$/,
     // },
-    // test: {
-    //     method: test,
-    //     syntax: "test",
-    //     help: "Randomly splits users into teams",
-    //     rx: /^!wz test$/,
-    // },
+    test: {
+        method: test,
+        syntax: "test",
+        help: "Randomly splits users into teams",
+        rx: /^!wz test$/,
+    },
 };
 
 async function controller(msg) {
@@ -532,3 +536,12 @@ async function startTrackStats(client) {
         }
     }, process.env.FIND_GAME_INTERVAL * 1000);
 }
+
+async function test(msg) {
+    let json = await getBattleInfoTest('acti', 'BrickLayeR')
+
+    console.log(json);
+    console.log(json.weekly);
+    console.log(json.weekly.mode.br_all);
+    console.log(json.weekly.all);
+};

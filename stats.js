@@ -7,7 +7,7 @@ module.exports = {
 require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 const table = require("markdown-table");
 
-const generateImageMatch = require("image-warzone");
+const { generateImageMatch, generateImageStats } = require("image-warzone");
 
 const Discord = require("discord.js");
 const ta = require("time-ago");
@@ -51,17 +51,27 @@ function sendUserStats(u, tryn, msgObj, err = "") {
 
             const lastStats = await getLastStatsFromUser(u.userId);
 
-            const embed = new Discord.MessageEmbed();
+            /*const embed = new Discord.MessageEmbed();
             embed
                 .setTitle(`Warzone Stats ${u.username}`)
                 .setThumbnail(
                     "https://modernwarfarediscordbot.com/images/gamemodes/br.png"
                 )
                 .setColor("PURPLE");
+*/
+            let data = {
+                pseudo: u.username,
+                newStats: stats,
+            };
 
-            await addStatsFromUser(u.userId, stats);
+            if (lastStats) {
+                data.oldStats = {
+                    ...lastStats.stats,
+                    dateInsert: lastStats.dateInsert,
+                };
+            }
 
-            if (
+            /*if (
                 lastStats &&
                 lastStats.stats &&
                 stats.timePlayed &&
@@ -97,11 +107,6 @@ function sendUserStats(u, tryn, msgObj, err = "") {
                     }
                 };
 
-                /**
-                 *
-                 * @param {*} f1 New Stats
-                 * @param {*} f2 Previous Stats
-                 */
                 const valueWithPercentage = (f1, f2) => {
                     if (f1 < f2) {
                         return f1 + "% (" + (f1 - f2).toFixed(2) + "%)";
@@ -365,10 +370,21 @@ function sendUserStats(u, tryn, msgObj, err = "") {
                         inline: true,
                     }
                 );
-            }
+            }*/
 
-            // edit original message
-            await msgObj.edit({ embed: embed });
+            generateImageStats(data)
+                .then(async (image) => {
+                    const sfattach = new Discord.MessageAttachment(
+                        image,
+                        "stats.png"
+                    );
+
+                    // client.channels.cache.get(match.channel).send(sfattach);
+
+                    // edit original message
+                    await msgObj.reply(sfattach);
+                })
+                .then(async () => await addStatsFromUser(u.userId, stats));
         } catch (e) {
             console.log(e);
             // an issue with the API, configure a retry and notify the user
@@ -538,7 +554,6 @@ async function sendUserMatch(u, match, msgObj) {
                     }
                 );
             await msgObj.edit({ embed: embed });
-
         } catch (e) {
             // an issue with the API, configure a retry and notify the user
             let errMsg =
@@ -701,16 +716,14 @@ Team finished **${displayTop(
                         },
                         {
                             name: "Kills",
-                            value:
-                                matchs[matchId][0].playerLastGame.playerStats
-                                    .kills,
+                            value: matchs[matchId][0].playerLastGame.playerStats
+                                .kills,
                             inline: true,
                         },
                         {
                             name: "Deaths",
-                            value:
-                                matchs[matchId][0].playerLastGame.playerStats
-                                    .deaths,
+                            value: matchs[matchId][0].playerLastGame.playerStats
+                                .deaths,
                             inline: true,
                         },
                         {
