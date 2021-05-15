@@ -59,12 +59,22 @@ function sendUserStats(u, tryn, msgObj, err = "") {
                 )
                 .setColor("PURPLE");
 */
+            let playername = u.username;
+            if (playername.includes("#")) {
+                playername = playername.split("#")[0];
+            }
+
             let data = {
-                pseudo: u.username,
+                pseudo: playername,
                 newStats: stats,
             };
 
-            if (lastStats) {
+            if (
+                lastStats &&
+                lastStats.stats &&
+                stats.timePlayed &&
+                lastStats.stats.timePlayed !== stats.timePlayed
+            ) {
                 data.oldStats = {
                     ...lastStats.stats,
                     dateInsert: lastStats.dateInsert,
