@@ -6,7 +6,7 @@ module.exports = {
     getBattleInfoTest,
 };
 
-require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
+require("dotenv").config();
 
 const API = require("call-of-duty-api")({ platform: "battle" });
 

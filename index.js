@@ -19,6 +19,7 @@ async function initBot() {
     // login to bot
     bot.login(process.env.TOKEN);
 
+    // Login to API cods
     codApi.login();
 
     // run when ready
