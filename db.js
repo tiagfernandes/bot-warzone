@@ -1,35 +1,21 @@
-module.exports = {
-    addUserToChannel,
-    addUser,
-    removeUserFromChannel,
-    getUserFromChannel,
-    getAllUsers,
-    getUser,
-    init,
-    getLastStatsFromUser,
-    addStatsFromUser,
-    getLastMatchFromUser,
-    addMatchFromUser,
-    getAllUsersTracked,
-    setScheduleToChannel,
-    findChannel,
-    trackUser,
-    untrackUser,
-};
 require("dotenv").config();
 const MongoClient = require("mongodb").MongoClient;
 
 let _db = null;
 
-async function init() {
-    const client = await MongoClient.connect(process.env.MONGO_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    });
-    _db = client.db(process.env.MONGO_DBNAME);
-}
+const init = async () => {
+    try {
+        const client = await MongoClient.connect(process.env.MONGO_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        _db = client.db(process.env.MONGO_DBNAME);
+    } catch (e) {
+        console.error(e);
+    }
+};
 
-async function findChannel(channelId) {
+const findChannel = async function (channelId) {
     let channel = await _db.collection("channels").findOne({ channelId });
     // if channel not found in db, create it
     if (channel == null) {
@@ -37,36 +23,36 @@ async function findChannel(channelId) {
         await _db.collection("channels").insertOne(channel);
     }
     return channel;
-}
+};
 
 /**
  * Return User
  * @param {int} userId
  */
-async function getUser(userId) {
+const getUser = async (userId) => {
     let user = await _db
-        .collection(process.env.MONGO_COLLECTION)
+        .collection("users")
         .findOne({ userId });
 
     return user;
-}
+};
 
-async function isUserAdded(channelId, username, platform) {
+const isUserAdded = async (channelId, username, platform) => {
     let userAdded = await _db.collection("channels").findOne({
         channelId,
         users: { $all: [{ username: username, platform: platform }] },
     });
     return userAdded != null;
-}
+};
 
-async function hasUser(username, platform) {
+const hasUser = async (username, platform) => {
     let user = await _db
-        .collection(process.env.MONGO_COLLECTION)
+        .collection("users")
         .findOne({ platform: platform, username: username });
     return user != null;
-}
+};
 
-async function addUserToChannel(channelId, username, platform) {
+const addUserToChannel = async (channelId, username, platform) => {
     if (await isUserAdded(channelId, username, platform)) {
         throw "User already added!";
     }
@@ -82,9 +68,9 @@ async function addUserToChannel(channelId, username, platform) {
             upsert: true,
         }
     );
-}
+};
 
-async function setScheduleToChannel(channelId, schedule) {
+const setScheduleToChannel = async (channelId, schedule) => {
     await _db.collection("channels").updateOne(
         { channelId },
         {
@@ -96,7 +82,7 @@ async function setScheduleToChannel(channelId, schedule) {
             upsert: true,
         }
     );
-}
+};
 
 /**
  *
@@ -104,19 +90,19 @@ async function setScheduleToChannel(channelId, schedule) {
  * @param {string} username
  * @param {string} platform
  */
-async function addUser(userId, username, platform) {
+const addUser = async (userId, username, platform) => {
     if (await hasUser(username, platform)) {
         throw "User already exist !";
     }
 
-    await _db.collection(process.env.MONGO_COLLECTION).insertOne({
+    await _db.collection("users").insertOne({
         userId: userId,
         username: username,
         platform: platform,
     });
-}
+};
 
-async function getUserFromChannel(channelId, username, platform) {
+const getUserFromChannel = async (channelId, username, platform) => {
     let r = await _db.collection("channels").findOne(
         {
             channelId,
@@ -133,9 +119,9 @@ async function getUserFromChannel(channelId, username, platform) {
         }
     );
     return r ? r.users[0] : null;
-}
+};
 
-async function removeUserFromChannel(channelId, username, platform) {
+const removeUserFromChannel = async (channelId, username, platform) => {
     await _db.collection("channels").updateOne(
         { channelId },
         {
@@ -144,14 +130,14 @@ async function removeUserFromChannel(channelId, username, platform) {
             },
         }
     );
-}
+};
 
-async function getAllUsers(channelId) {
+const getAllUsers = async (channelId) => {
     let channel = await findChannel(channelId);
     return channel.users;
-}
+};
 
-async function getAllUsersTracked() {
+const getAllUsersTracked = async () => {
     return _db
         .collection("users")
         .find({ track: { $ne: null } })
@@ -160,14 +146,14 @@ async function getAllUsersTracked() {
             return items;
         })
         .catch((err) => console.error(`Failed to find documents: ${err}`));
-}
+};
 
-async function getLastStatsFromUser(userId) {
+const getLastStatsFromUser = async (userId) => {
     let r = await _db.collection("stats").findOne({ userId });
     return r ? r : null;
-}
+};
 
-async function addStatsFromUser(userId, stats) {
+const addStatsFromUser = async (userId, stats) => {
     if (await hasStatsFromUser(userId)) {
         // Update
         await _db.collection("stats").updateOne(
@@ -189,19 +175,19 @@ async function addStatsFromUser(userId, stats) {
             dateInsert: new Date(),
         });
     }
-}
+};
 
-async function hasStatsFromUser(userId) {
+const hasStatsFromUser = async (userId) => {
     let stats = await _db.collection("stats").findOne({ userId });
     return stats != null;
-}
+};
 
-async function getLastMatchFromUser(userId) {
+const getLastMatchFromUser = async (userId) => {
     let r = await _db.collection("match").findOne({ userId });
     return r ? r : null;
-}
+};
 
-async function addMatchFromUser(userId, matchId) {
+const addMatchFromUser = async (userId, matchId) => {
     if (await hasMatchFromUser(userId)) {
         // Update
         await _db.collection("match").updateOne(
@@ -223,14 +209,14 @@ async function addMatchFromUser(userId, matchId) {
             dateInsert: new Date(),
         });
     }
-}
+};
 
-async function hasMatchFromUser(userId) {
+const hasMatchFromUser = async (userId) => {
     let match = await _db.collection("match").findOne({ userId });
     return match != null;
-}
+};
 
-async function trackUser(userId, channelId) {
+const trackUser = async (userId, channelId) => {
     await _db.collection("users").updateOne(
         {
             userId,
@@ -241,9 +227,9 @@ async function trackUser(userId, channelId) {
             },
         }
     );
-}
+};
 
-async function untrackUser(userId) {
+const untrackUser = async (userId) => {
     await _db.collection("users").updateOne(
         {
             userId,
@@ -254,4 +240,23 @@ async function untrackUser(userId) {
             },
         }
     );
-}
+};
+
+module.exports = {
+    init,
+    findChannel,
+    getUser,
+    addUserToChannel,
+    addUser,
+    removeUserFromChannel,
+    getUserFromChannel,
+    getAllUsers,
+    getLastStatsFromUser,
+    addStatsFromUser,
+    getLastMatchFromUser,
+    addMatchFromUser,
+    getAllUsersTracked,
+    setScheduleToChannel,
+    trackUser,
+    untrackUser,
+};

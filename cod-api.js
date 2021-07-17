@@ -1,20 +1,16 @@
-module.exports = {
-    login,
-    getPlayerProfile,
-    getBattleRoyaleInfo,
-    getBattleRoyaleMatchs,
-    getBattleInfoTest,
-};
-
 require("dotenv").config();
 
-const API = require("call-of-duty-api")({ platform: "battle" });
+const API = require("call-of-duty-api")({ platform: "all" });
 
 async function login() {
-    await API.login(process.env.API_USERNAME, process.env.API_PASSWORD);
+    try {
+        await API.login(process.env.API_USERNAME, process.env.API_PASSWORD);
+    } catch (e) {
+        console.error(e);
+    }
 }
 
-async function getPlayerProfile(platform, username) {
+const getPlayerProfile = async (platform, username) => {
     try {
         await API.MWBattleData(username, platform);
         return { username, platform };
@@ -22,9 +18,9 @@ async function getPlayerProfile(platform, username) {
         console.log(Error);
         return false;
     }
-}
+};
 
-async function getBattleRoyaleInfo(platform, username) {
+const getBattleRoyaleInfo = async (platform, username) => {
     try {
         let data = await API.MWBattleData(username, platform);
         return data.br;
@@ -32,13 +28,21 @@ async function getBattleRoyaleInfo(platform, username) {
         console.error(e);
         return null;
     }
-}
+};
 
-async function getBattleRoyaleMatchs(platform, username) {
+const getBattleRoyaleMatchs = async (platform, username) => {
     let data = await API.MWcombatwz(username, platform);
     return data.matches;
-}
+};
 
-async function getBattleInfoTest(platform, username) {
+const getBattleInfoTest = async (platform, username) => {
     return await API.MWwz(username, platform);
-}
+};
+
+module.exports = {
+    login,
+    getPlayerProfile,
+    getBattleRoyaleInfo,
+    getBattleRoyaleMatchs,
+    getBattleInfoTest,
+};

@@ -3,15 +3,14 @@ const bot = new discord.Client();
 
 const db = require("./db");
 const { controller } = require("./controller");
-const scheduler = require("./scheduler");
 const codApi = require("./cod-api");
+const { startTrackStats } = require("./commands/track");
 
 init();
 
 // run all setup tasks and then start discord bot
 async function init() {
     await db.init();
-    await scheduler.init(bot);
     await initBot();
 }
 
@@ -26,6 +25,8 @@ async function initBot() {
     bot.on("ready", () => {
         bot.user.setActivity({ name: "for '!wz' commands", type: "WATCHING" });
         console.info(`Logged in as ${bot.user.tag}`);
+
+        startTrackStats();
     });
 
     // run when message received

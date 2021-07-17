@@ -1,22 +1,15 @@
-module.exports = {
-    sendUserStats,
-    sendUserMatch,
-    sendMatchStats,
-    sendMatchStatsTest,
-};
 require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 const table = require("markdown-table");
 
 const { generateImageMatch, generateImageStats } = require("image-warzone");
 
 const Discord = require("discord.js");
-const ta = require("time-ago");
 
-const { getBattleRoyaleInfo, getPlayerProfile } = require("./cod-api");
+const { getBattleRoyaleInfo } = require("./cod-api");
 const { addStatsFromUser, getLastStatsFromUser } = require("./db");
 const { escapeMarkdown } = require("./util");
 
-function secondsToDhm(seconds) {
+const secondsToDhm = (seconds) => {
     seconds = Number(seconds);
     var d = Math.floor(seconds / (3600 * 24));
     var h = Math.floor((seconds % (3600 * 24)) / 3600);
@@ -26,9 +19,9 @@ function secondsToDhm(seconds) {
     var hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
     var mDisplay = m > 0 ? m + (m == 1 ? " min, " : " mins") : "";
     return dDisplay + hDisplay + mDisplay;
-}
+};
 
-function sendUserStats(u, tryn, msgObj, err = "") {
+const sendUserStats = (u, tryn, msgObj, err = "") => {
     // timeout durations for each retry
     let tryWaits = new Array(3)
         .fill([5000, 10000, 30000, 60000, 90000])
@@ -36,7 +29,7 @@ function sendUserStats(u, tryn, msgObj, err = "") {
         .sort((a, b) => a - b);
 
     // returns a function that can be passed to setTimeout
-    return async function () {
+    return async () => {
         // if retried max times, just stop
         if (tryn >= tryWaits.length) {
             await msgObj.edit(
@@ -51,14 +44,6 @@ function sendUserStats(u, tryn, msgObj, err = "") {
 
             const lastStats = await getLastStatsFromUser(u.userId);
 
-            /*const embed = new Discord.MessageEmbed();
-            embed
-                .setTitle(`Warzone Stats ${u.username}`)
-                .setThumbnail(
-                    "https://modernwarfarediscordbot.com/images/gamemodes/br.png"
-                )
-                .setColor("PURPLE");
-*/
             let playername = u.username;
             if (playername.includes("#")) {
                 playername = playername.split("#")[0];
@@ -80,307 +65,6 @@ function sendUserStats(u, tryn, msgObj, err = "") {
                     dateInsert: lastStats.dateInsert,
                 };
             }
-
-            /*if (
-                lastStats &&
-                lastStats.stats &&
-                stats.timePlayed &&
-                lastStats.stats.timePlayed !== stats.timePlayed
-            ) {
-                const getSymbole = (f1, f2) => {
-                    if (f1 > f2) {
-                        return "▲ ";
-                    } else if (f1 == f2) {
-                        return "= ";
-                    } else if (f1 < f2) {
-                        return "▼";
-                    }
-                };
-
-                const nameWithPercentage = (f1, f2, text) => {
-                    return getSymbole(f1, f2) + text;
-                };
-
-                const valueInteger = (f1, f2) => {
-                    if (f1 < f2) {
-                        return `${new Intl.NumberFormat("fr-FR").format(f1)} (${
-                            (f1 - f2) % 1 === 0 ? f1 - f2 : (f1 - f2).toFixed(2)
-                        })`;
-                    } else if (f1 == f2) {
-                        return new Intl.NumberFormat("fr-FR").format(f1);
-                    } else if (f1 > f2) {
-                        return `${new Intl.NumberFormat("fr-FR").format(
-                            f1
-                        )} (+${
-                            (f1 - f2) % 1 === 0 ? f1 - f2 : (f1 - f2).toFixed(2)
-                        })`;
-                    }
-                };
-
-                const valueWithPercentage = (f1, f2) => {
-                    if (f1 < f2) {
-                        return f1 + "% (" + (f1 - f2).toFixed(2) + "%)";
-                    } else if (f1 == f2) {
-                        return f1 + "%";
-                    } else if (f1 > f2) {
-                        return f1 + "% (+" + (f1 - f2).toFixed(2) + "%)";
-                    }
-                };
-
-                embed
-                    .setDescription(
-                        `Battle Royale\n*Compare to : ${ta.ago(
-                            lastStats.dateInsert
-                        )}*`
-                    )
-                    .addFields(
-                        {
-                            name: "▲ Time Played",
-                            value:
-                                secondsToDhm(stats.timePlayed) +
-                                " (+ " +
-                                secondsToDhm(
-                                    stats.timePlayed -
-                                        lastStats.stats.timePlayed
-                                ) +
-                                ")",
-                        },
-                        {
-                            name: "Games Played",
-                            value: new Intl.NumberFormat("fr-FR").format(
-                                stats.gamesPlayed
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: nameWithPercentage(
-                                (
-                                    (stats.wins / stats.gamesPlayed) *
-                                    100
-                                ).toFixed(2),
-                                (
-                                    (lastStats.stats.wins /
-                                        lastStats.stats.gamesPlayed) *
-                                    100
-                                ).toFixed(2),
-                                "Win percentage"
-                            ),
-                            value: valueWithPercentage(
-                                (
-                                    (stats.wins / stats.gamesPlayed) *
-                                    100
-                                ).toFixed(2),
-                                (
-                                    (lastStats.stats.wins /
-                                        lastStats.stats.gamesPlayed) *
-                                    100
-                                ).toFixed(2)
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: "\u200b",
-                            value: "\u200b",
-                            inline: true,
-                        },
-                        {
-                            name: nameWithPercentage(
-                                stats.wins,
-                                lastStats.stats.wins,
-                                "Total Win"
-                            ),
-                            value: valueInteger(
-                                stats.wins,
-                                lastStats.stats.wins
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: nameWithPercentage(
-                                stats.topFive,
-                                lastStats.stats.topFive,
-                                "Top 5"
-                            ),
-                            value: valueInteger(
-                                stats.topFive,
-                                lastStats.stats.topFive
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: nameWithPercentage(
-                                stats.topTen,
-                                lastStats.stats.topTen,
-                                "Top 10"
-                            ),
-                            value: valueInteger(
-                                stats.topTen,
-                                lastStats.stats.topTen
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: nameWithPercentage(
-                                stats.kdRatio.toFixed(2),
-                                lastStats.stats.kdRatio.toFixed(2),
-                                "KDR"
-                            ),
-                            value: valueInteger(
-                                stats.kdRatio.toFixed(2),
-                                lastStats.stats.kdRatio.toFixed(2)
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: nameWithPercentage(
-                                stats.kills,
-                                lastStats.stats.kills,
-                                "Kills"
-                            ),
-                            value: valueInteger(
-                                stats.kills,
-                                lastStats.stats.kills
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: nameWithPercentage(
-                                stats.deaths,
-                                lastStats.stats.deaths,
-                                "Deaths"
-                            ),
-                            value: valueInteger(
-                                stats.deaths,
-                                lastStats.stats.deaths
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: nameWithPercentage(
-                                stats.downs,
-                                lastStats.stats.downs,
-                                "Downs"
-                            ),
-                            value: valueInteger(
-                                stats.downs,
-                                lastStats.stats.downs
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: nameWithPercentage(
-                                stats.revives,
-                                lastStats.stats.revives,
-                                "Revives"
-                            ),
-                            value: valueInteger(
-                                stats.revives,
-                                lastStats.stats.revives
-                            ),
-                            inline: true,
-                        },
-                        {
-                            name: nameWithPercentage(
-                                stats.revives,
-                                lastStats.stats.revives,
-                                "Contracts"
-                            ),
-                            value: valueInteger(
-                                stats.contracts,
-                                lastStats.stats.contracts
-                            ),
-                            inline: true,
-                        }
-                    );
-            } else {
-                embed.setDescription("Battle Royale").addFields(
-                    {
-                        name: "Time Played",
-                        value: secondsToDhm(stats.timePlayed),
-                    },
-                    {
-                        name: "Games Played",
-                        value: new Intl.NumberFormat("fr-FR").format(
-                            stats.gamesPlayed
-                        ),
-                        inline: true,
-                    },
-                    {
-                        name: "Win percentage",
-                        value:
-                            ((stats.wins / stats.gamesPlayed) * 100).toFixed(
-                                2
-                            ) + " %",
-                        inline: true,
-                    },
-                    {
-                        name: "\u200b",
-                        value: "\u200b",
-                        inline: true,
-                    },
-                    {
-                        name: "Total Wins",
-                        value: new Intl.NumberFormat("fr-FR").format(
-                            stats.wins
-                        ),
-                        inline: true,
-                    },
-                    {
-                        name: "Top 5",
-                        value: new Intl.NumberFormat("fr-FR").format(
-                            stats.topFive
-                        ),
-                        inline: true,
-                    },
-                    {
-                        name: "Top 10",
-                        value: new Intl.NumberFormat("fr-FR").format(
-                            stats.topTen
-                        ),
-                        inline: true,
-                    },
-                    {
-                        name: "KDR",
-                        value: stats.kdRatio.toFixed(2),
-                        inline: true,
-                    },
-                    {
-                        name: "Kills",
-                        value: new Intl.NumberFormat("fr-FR").format(
-                            stats.kills
-                        ),
-                        inline: true,
-                    },
-                    {
-                        name: "Deaths",
-                        value: new Intl.NumberFormat("fr-FR").format(
-                            stats.deaths
-                        ),
-                        inline: true,
-                    },
-                    {
-                        name: "Downs",
-                        value: new Intl.NumberFormat("fr-FR").format(
-                            stats.downs
-                        ),
-                        inline: true,
-                    },
-                    {
-                        name: "Revives",
-                        value: new Intl.NumberFormat("fr-FR").format(
-                            stats.revives
-                        ),
-                        inline: true,
-                    },
-                    {
-                        name: "Contracts",
-                        value: new Intl.NumberFormat("fr-FR").format(
-                            stats.contracts
-                        ),
-                        inline: true,
-                    }
-                );
-            }*/
 
             generateImageStats(data)
                 .then(async (image) => {
@@ -418,9 +102,9 @@ function sendUserStats(u, tryn, msgObj, err = "") {
             await msgObj.edit(errMsg);
         }
     };
-}
+};
 
-function displayTop(top) {
+const displayTop = (top) => {
     if (top == 1) {
         return "1 🥇️";
     } else if (top == 2) {
@@ -430,14 +114,14 @@ function displayTop(top) {
     } else {
         return top;
     }
-}
+};
 
-function unixTime(unixtime) {
+const unixTime = (unixtime) => {
     var d = new Date(unixtime * 1000);
     return d.toLocaleString("fr-FR");
-}
+};
 
-function getGameMode(mode) {
+const getGameMode = (mode) => {
     let result = "Battle Royal";
 
     switch (mode) {
@@ -464,9 +148,9 @@ function getGameMode(mode) {
             break;
     }
     return result;
-}
+};
 
-async function sendUserMatch(u, match, msgObj) {
+const sendUserMatch = async (u, match, msgObj) => {
     if (match.mode != "br_dmz_plnbld") {
         try {
             const embed = new Discord.MessageEmbed();
@@ -575,9 +259,9 @@ async function sendUserMatch(u, match, msgObj) {
             await msgObj.edit(errMsg);
         }
     }
-}
+};
 
-async function sendMatchStats(matchs, client) {
+const sendMatchStats = async (matchs, client) => {
     for (const matchId in matchs) {
         const channel = client.channels.cache.get(
             matchs[matchId][0].user.track
@@ -795,9 +479,9 @@ Team finished **${displayTop(
             }
         }
     }
-}
+};
 
-async function sendMatchStatsTest(matchs, client) {
+const sendMatchStatsTest = async (matchs, client) => {
     matchs.forEach((match) => {
         generateImageMatch(match).then((image) => {
             const sfattach = new Discord.MessageAttachment(image, "stats.png");
@@ -805,4 +489,12 @@ async function sendMatchStatsTest(matchs, client) {
             client.channels.cache.get(match.channel).send(sfattach);
         });
     });
+};
+
+
+module.exports = {
+    sendUserStats,
+    sendUserMatch,
+    sendMatchStats,
+    sendMatchStatsTest
 }
