@@ -26,7 +26,7 @@ async function initBot() {
         bot.user.setActivity({ name: "for '!wz' commands", type: "WATCHING" });
         console.info(`Logged in as ${bot.user.tag}`);
 
-        startTrackStats();
+        startTrackStats(bot);
     });
 
     // run when message received
