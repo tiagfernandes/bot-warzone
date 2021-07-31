@@ -18,15 +18,19 @@ async function initBot() {
     // login to bot
     bot.login(process.env.TOKEN);
 
-    // Login to API cods
-    codApi.login();
-
     // run when ready
     bot.on("ready", () => {
-        bot.user.setActivity({ name: "for '!wz' commands", type: "WATCHING" });
         console.info(`Logged in as ${bot.user.tag}`);
 
-        startTrackStats(bot);
+        // Login to API cods
+        codApi.login().then(() => {
+            console.log('Logged to COD API')
+            startTrackStats(bot);
+            bot.user.setActivity({
+                name: "for '!wz' commands",
+                type: "WATCHING",
+            });
+        }).catch(console.error);
     });
 
     // run when message received
