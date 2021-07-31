@@ -3,11 +3,11 @@ require("dotenv").config();
 const API = require("call-of-duty-api")();
 
 async function login() {
-    try {
-        await API.login(process.env.API_USERNAME, process.env.API_PASSWORD, process.env.TOKEN_2CAPTCHA);
-    } catch (e) {
-        console.error(e);
-    }
+    return API.login(
+        process.env.API_USERNAME,
+        process.env.API_PASSWORD,
+        process.env.TOKEN_2CAPTCHA
+    );
 }
 
 const getPlayerProfile = async (platform, username) => {
