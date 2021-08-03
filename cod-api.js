@@ -1,20 +1,36 @@
-module.exports = {
-    login,
-    getPlayerProfile,
-    getBattleRoyaleInfo,
-    getBattleRoyaleMatchs,
-    getBattleInfoTest,
-};
+require("dotenv").config();
 
-require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
+const env = process.env.NODE_ENV || "dev";
 
-const API = require("call-of-duty-api")({ platform: "battle" });
+const API = require("call-of-duty-api")();
 
 async function login() {
-    await API.login(process.env.API_USERNAME, process.env.API_PASSWORD);
+    if (env == "dev") {
+        if (!process.env.TOKEN_SSO_COOKIE) {
+            throw Error("Env variable TOKEN_SSO_COOKIE is required");
+        }
+
+        return API.loginWithSSO(process.env.TOKEN_SSO_COOKIE);
+    } else {
+        if (!process.env.API_USERNAME) {
+            throw Error("Env variable API_USERNAME is required");
+        }
+        if (!process.env.API_PASSWORD) {
+            throw Error("Env variable API_PASSWORD is required");
+        }
+        if (!process.env.TOKEN_2CAPTCHA) {
+            throw Error("Env variable TOKEN_2CAPTCHA is required");
+        }
+
+        return API.login(
+            process.env.API_USERNAME,
+            process.env.API_PASSWORD,
+            process.env.TOKEN_2CAPTCHA
+        );
+    }
 }
 
-async function getPlayerProfile(platform, username) {
+const getPlayerProfile = async (platform, username) => {
     try {
         await API.MWBattleData(username, platform);
         return { username, platform };
@@ -22,9 +38,9 @@ async function getPlayerProfile(platform, username) {
         console.log(Error);
         return false;
     }
-}
+};
 
-async function getBattleRoyaleInfo(platform, username) {
+const getBattleRoyaleInfo = async (platform, username) => {
     try {
         let data = await API.MWBattleData(username, platform);
         return data.br;
@@ -32,13 +48,21 @@ async function getBattleRoyaleInfo(platform, username) {
         console.error(e);
         return null;
     }
-}
+};
 
-async function getBattleRoyaleMatchs(platform, username) {
+const getBattleRoyaleMatchs = async (platform, username) => {
     let data = await API.MWcombatwz(username, platform);
     return data.matches;
-}
+};
 
-async function getBattleInfoTest(platform, username) {
+const getBattleInfoTest = async (platform, username) => {
     return await API.MWwz(username, platform);
-}
+};
+
+module.exports = {
+    login,
+    getPlayerProfile,
+    getBattleRoyaleInfo,
+    getBattleRoyaleMatchs,
+    getBattleInfoTest,
+};
