@@ -1,13 +1,33 @@
 require("dotenv").config();
 
+const env = process.env.NODE_ENV || "dev";
+
 const API = require("call-of-duty-api")();
 
 async function login() {
-    return API.login(
-        process.env.API_USERNAME,
-        process.env.API_PASSWORD,
-        process.env.TOKEN_2CAPTCHA
-    );
+    if (env == "dev") {
+        if (!process.env.TOKEN_SSO_COOKIE) {
+            throw Error("Env variable TOKEN_SSO_COOKIE is required");
+        }
+
+        return API.loginWithSSO(process.env.TOKEN_SSO_COOKIE);
+    } else {
+        if (!process.env.API_USERNAME) {
+            throw Error("Env variable API_USERNAME is required");
+        }
+        if (!process.env.API_PASSWORD) {
+            throw Error("Env variable API_PASSWORD is required");
+        }
+        if (!process.env.TOKEN_2CAPTCHA) {
+            throw Error("Env variable TOKEN_2CAPTCHA is required");
+        }
+
+        return API.login(
+            process.env.API_USERNAME,
+            process.env.API_PASSWORD,
+            process.env.TOKEN_2CAPTCHA
+        );
+    }
 }
 
 const getPlayerProfile = async (platform, username) => {
