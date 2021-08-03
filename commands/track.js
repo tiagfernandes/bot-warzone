@@ -5,7 +5,7 @@ const db = require("../db");
 const util = require("../util");
 
 const { getBattleRoyaleMatchs } = require("../cod-api");
-const { sendMatchStatsTest } = require("../stats");
+const { sendMatchStats } = require("../stats");
 
 /**
  * Track a player
@@ -174,7 +174,7 @@ const startTrackStats = async (client) => {
                     }
                     console.log(`Fin traitement de ${user.username}`);
                 }
-                sendMatchStatsTest(arrayMatchs, client);
+                sendMatchStats(arrayMatchs, client);
             }
         } catch (Error) {
             //Handle Exception
