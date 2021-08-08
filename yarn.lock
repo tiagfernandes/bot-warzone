@@ -338,9 +338,9 @@
   "version" "0.7.31"
 
 "@types/node@*":
-  "integrity" "sha512-TmVHsm43br64js9BqHWqiDZA+xMtbUpI1MBIA0EyiBmoV9pcEYFOSdj5fr6enZNfh4fChh+AGOLIzGwJnkshyQ=="
-  "resolved" "https://registry.npmjs.org/@types/node/-/node-16.4.10.tgz"
-  "version" "16.4.10"
+  "integrity" "sha512-zxrTNFl9Z8boMJXs6ieqZP0wAhvkdzmHSxTlJabM16cf5G9xBc1uPRH5Bbv2omEDDiM8MzTfqTJXBf0Ba4xFWA=="
+  "resolved" "https://registry.npmjs.org/@types/node/-/node-16.4.12.tgz"
+  "version" "16.4.12"
 
 "@types/puppeteer@5.4.3":
   "integrity" "sha512-3nE8YgR9DIsgttLW+eJf6mnXxq8Ge+27m5SU3knWmrlfl6+KOG0Bf9f7Ua7K+C4BnaTMAh3/UpySqdAYvrsvjg=="
@@ -756,10 +756,10 @@
   "resolved" "https://registry.npmjs.org/denque/-/denque-1.5.0.tgz"
   "version" "1.5.0"
 
-"devtools-protocol@0.0.883894":
-  "integrity" "sha512-33idhm54QJzf3Q7QofMgCvIVSd2o9H3kQPWaKT/fhoZh+digc+WSiMhbkeG3iN79WY4Hwr9G05NpbhEVrsOYAg=="
-  "resolved" "https://registry.npmjs.org/devtools-protocol/-/devtools-protocol-0.0.883894.tgz"
-  "version" "0.0.883894"
+"devtools-protocol@0.0.901419":
+  "integrity" "sha512-4INMPwNm9XRpBukhNbF7OB6fNTTCaI8pzy/fXg0xQzAy5h3zL1P8xT3QazgKqBrb/hAYwIBizqDBZ7GtJE74QQ=="
+  "resolved" "https://registry.npmjs.org/devtools-protocol/-/devtools-protocol-0.0.901419.tgz"
+  "version" "0.0.901419"
 
 "discord.js@^12.5.1":
   "integrity" "sha512-D3nkOa/pCkNyn6jLZnAiJApw2N9XrIsXUAdThf01i7yrEuqUmDGc7/CexVWwEcgbQR97XQ+mcnqJpmJ/92B4Aw=="
@@ -1562,9 +1562,9 @@
     "xml2js" "^0.4.5"
 
 "parse-headers@^2.0.0":
-  "integrity" "sha512-QhhZ+DCCit2Coi2vmAKbq5RGTRcQUOE2+REgv8vdyu7MnYx2eZztegqtTx99TZ86GTIwqiy3+4nQTWZ2tgmdCA=="
-  "resolved" "https://registry.npmjs.org/parse-headers/-/parse-headers-2.0.3.tgz"
-  "version" "2.0.3"
+  "integrity" "sha512-psZ9iZoCNFLrgRjZ1d8mn0h9WRqJwFxM9q3x7iUjN/YT2OksthDJ5TiPCu2F38kS4zutqfW+YdVVkBZZx3/1aw=="
+  "resolved" "https://registry.npmjs.org/parse-headers/-/parse-headers-2.0.4.tgz"
+  "version" "2.0.4"
 
 "path-exists@^4.0.0":
   "integrity" "sha512-ak9Qy5Q7jYb2Wwcey5Fpvg2KoAc/ZIhLSLOSBmRmygPsGwkVVt0fZa0qrtMz+m6tJTAHfZQ8FnmB4MG4LWy7/w=="
@@ -1717,12 +1717,12 @@
     "deepmerge" "^4.2.2"
 
 "puppeteer@*", "puppeteer@^10.1.0":
-  "integrity" "sha512-bsyDHbFBvbofZ63xqF7hMhuKBX1h4WsqFIAoh1GuHr/Y9cewh+EFNAOdqWSkQRHLiBU/MY6M+8PUnXXjAPtuSg=="
-  "resolved" "https://registry.npmjs.org/puppeteer/-/puppeteer-10.1.0.tgz"
-  "version" "10.1.0"
+  "integrity" "sha512-OR2CCHRashF+f30+LBOtAjK6sNtz2HEyTr5FqAvhf8lR/qB3uBRoIZOwQKgwoyZnMBsxX7ZdazlyBgGjpnkiMw=="
+  "resolved" "https://registry.npmjs.org/puppeteer/-/puppeteer-10.2.0.tgz"
+  "version" "10.2.0"
   dependencies:
     "debug" "4.3.1"
-    "devtools-protocol" "0.0.883894"
+    "devtools-protocol" "0.0.901419"
     "extract-zip" "2.0.1"
     "https-proxy-agent" "5.0.0"
     "node-fetch" "2.6.1"

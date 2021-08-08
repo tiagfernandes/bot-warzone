@@ -1,7 +1,12 @@
 require("dotenv").config();
-const MongoClient = require("mongodb").MongoClient;
+
+const mongo = require("mongodb");
+const MongoClient = mongo.MongoClient;
 
 let _db = null;
+
+const SERVER_COLLECTION = "server";
+const USER_COLLECTION = "user";
 
 const init = async () => {
     try {
@@ -30,15 +35,23 @@ const findChannel = async function (channelId) {
  * @param {int} userId
  */
 const getUser = async (userId) => {
-    let user = await _db
-        .collection("users")
-        .findOne({ userId });
+    let user = await _db.collection(USER_COLLECTION).findOne({ userId });
 
     return user;
 };
 
+const removeUser = async (idUser) => {
+    await _db
+        .collection(USER_COLLECTION)
+        .deleteOne({ _id: mongo.ObjectID(idUser) });
+
+    await _db.collection(SERVER_COLLECTION).updateMany({}, {
+        $pull: {users: mongo.ObjectID(idUser)}
+    });
+};
+
 const isUserAdded = async (channelId, username, platform) => {
-    let userAdded = await _db.collection("channels").findOne({
+    let userAdded = await _db.collection("server").findOne({
         channelId,
         users: { $all: [{ username: username, platform: platform }] },
     });
@@ -46,28 +59,55 @@ const isUserAdded = async (channelId, username, platform) => {
 };
 
 const hasUser = async (username, platform) => {
-    let user = await _db
-        .collection("users")
-        .findOne({ platform: platform, username: username });
+    let user = await _db.collection(USER_COLLECTION).findOne({
+        platform: new RegExp(platform, "i"),
+        username: new RegExp(username, "i"),
+    });
     return user != null;
 };
 
-const addUserToChannel = async (channelId, username, platform) => {
-    if (await isUserAdded(channelId, username, platform)) {
+const addPlayer = async (interaction, username, platform) => {
+    if (await isUserAdded(interaction.guild_id, username, platform)) {
         throw "User already added!";
     }
 
-    await _db.collection("channels").updateOne(
-        { channelId },
-        {
-            $push: {
-                users: { username, platform },
-            },
-        },
-        {
-            upsert: true,
-        }
-    );
+    if (await hasUser(username, platform)) {
+        throw "User already exist !";
+    }
+
+    await _db
+        .collection(USER_COLLECTION)
+        .insertOne({
+            userId: interaction.member.user.id,
+            username,
+            platform,
+        })
+        .then(async (result) => {
+            await _db.collection(SERVER_COLLECTION).updateOne(
+                { serverId: interaction.guild_id },
+                {
+                    $push: {
+                        users: mongo.ObjectId(result.insertedId),
+                    },
+                },
+                {
+                    upsert: true,
+                }
+            );
+        });
+};
+
+const modifyUser = async (interaction, username, platform) => {
+    if (await isUserAdded(interaction.guild_id, username, platform)) {
+        throw "User already added!";
+    }
+
+    await _db
+        .collection(USER_COLLECTION)
+        .updateOne(
+            { userId: interaction.member.user.id },
+            { $set: { username, platform } }
+        );
 };
 
 const setScheduleToChannel = async (channelId, schedule) => {
@@ -84,28 +124,10 @@ const setScheduleToChannel = async (channelId, schedule) => {
     );
 };
 
-/**
- *
- * @param {int} userId
- * @param {string} username
- * @param {string} platform
- */
-const addUser = async (userId, username, platform) => {
-    if (await hasUser(username, platform)) {
-        throw "User already exist !";
-    }
-
-    await _db.collection("users").insertOne({
-        userId: userId,
-        username: username,
-        platform: platform,
-    });
-};
-
-const getUserFromChannel = async (channelId, username, platform) => {
-    let r = await _db.collection("channels").findOne(
+const getUserFromServer = async (serverId, username, platform) => {
+    let r = await _db.collection(SERVER_COLLECTION).findOne(
         {
-            channelId,
+            serverId: serverId,
             users: {
                 $elemMatch: {
                     username: new RegExp(username, "i"),
@@ -139,7 +161,7 @@ const getAllUsers = async (channelId) => {
 
 const getAllUsersTracked = async () => {
     return _db
-        .collection("users")
+        .collection(USER_COLLECTION)
         .find({ track: { $ne: null } })
         .toArray()
         .then((items) => {
@@ -217,7 +239,7 @@ const hasMatchFromUser = async (userId) => {
 };
 
 const trackUser = async (userId, channelId) => {
-    await _db.collection("users").updateOne(
+    await _db.collection(USER_COLLECTION).updateOne(
         {
             userId,
         },
@@ -230,7 +252,7 @@ const trackUser = async (userId, channelId) => {
 };
 
 const untrackUser = async (userId) => {
-    await _db.collection("users").updateOne(
+    await _db.collection(USER_COLLECTION).updateOne(
         {
             userId,
         },
@@ -246,10 +268,11 @@ module.exports = {
     init,
     findChannel,
     getUser,
-    addUserToChannel,
-    addUser,
+    addPlayer,
+    modifyPlayer: modifyUser,
+    removeUser,
     removeUserFromChannel,
-    getUserFromChannel,
+    getUserFromServer,
     getAllUsers,
     getLastStatsFromUser,
     addStatsFromUser,
