@@ -7,7 +7,7 @@ const codApi = require("./cod-api");
 const { initSlashCommands } = require("./shash-commands");
 
 const { startTrackStats } = require("./commands/track");
-const { statsUser } = require("./commands/player");
+const { statsMe } = require("./commands/player");
 const {
     registerUser,
     changeUser,
@@ -48,28 +48,53 @@ async function initBot() {
         console.log(commands);
 
         client.ws.on("INTERACTION_CREATE", async (interaction) => {
-            const { name, options } = interaction.data;
+            const { name, options: optionsData } = interaction.data;
 
             const command = name.toLowerCase();
 
             const args = {};
 
-            if (options) {
-                for (const option of options) {
-                    const { name, value } = option;
-                    args[name] = value;
+            if (optionsData) {
+                for (const option of optionsData) {
+                    const { name, value, options } = option;
+                    if (options) {
+                        args[name] = options[0].value;
+                    } else {
+                        args[name] = value;
+                    }
                 }
             }
+
             console.log("Command ", command);
-            console.log("Options ", options);
+            console.log("Options ", optionsData);
             console.log("Args ", args);
 
-            if (command == "register") {
-                registerUser(client, interaction, args);
-            } else if (command == "change-player") {
-                changeUser(client, interaction, args);
-            } else if (command == "unregister") {
-                unregisterUser(client, interaction);
+            switch (command) {
+                case "register":
+                    registerUser(client, interaction, args);
+                    break;
+                case "change-player":
+                    changeUser(client, interaction, args);
+                    break;
+                case "unregister":
+                    unregisterUser(client, interaction);
+                    break;
+                case "channel-track":
+                    console.log("CHANNEL-TRACK");
+                    break;
+                case "stats":
+                    console.log("STATS");
+                    if (args.hasOwnProperty("me")) {
+                        // Stats me
+                        console.log("STATS ME");
+                        statsMe(client, interaction)
+                    } else if (args.hasOwnProperty("player")) {
+                        // Stats player
+                        console.log("STATS PLAYER");
+                    }
+                    break;
+                default:
+                    break;
             }
 
             // if (command === "ping") {

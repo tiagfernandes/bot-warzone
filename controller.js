@@ -1,6 +1,6 @@
 module.exports = { controller };
 
-const { statsUser } = require("./commands/player");
+const { statsMe: statsUser } = require("./commands/player");
 const {
     registrants,
     registerUser,

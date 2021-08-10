@@ -45,9 +45,12 @@ const removeUser = async (idUser) => {
         .collection(USER_COLLECTION)
         .deleteOne({ _id: mongo.ObjectID(idUser) });
 
-    await _db.collection(SERVER_COLLECTION).updateMany({}, {
-        $pull: {users: mongo.ObjectID(idUser)}
-    });
+    await _db.collection(SERVER_COLLECTION).updateMany(
+        {},
+        {
+            $pull: { users: mongo.ObjectID(idUser) },
+        }
+    );
 };
 
 const isUserAdded = async (channelId, username, platform) => {
@@ -110,20 +113,6 @@ const modifyUser = async (interaction, username, platform) => {
         );
 };
 
-const setScheduleToChannel = async (channelId, schedule) => {
-    await _db.collection("channels").updateOne(
-        { channelId },
-        {
-            $set: {
-                schedule: schedule,
-            },
-        },
-        {
-            upsert: true,
-        }
-    );
-};
-
 const getUserFromServer = async (serverId, username, platform) => {
     let r = await _db.collection(SERVER_COLLECTION).findOne(
         {
@@ -175,33 +164,18 @@ const getLastStatsFromUser = async (userId) => {
     return r ? r : null;
 };
 
-const addStatsFromUser = async (userId, stats) => {
-    if (await hasStatsFromUser(userId)) {
-        // Update
-        await _db.collection("stats").updateOne(
-            {
-                userId,
-            },
-            {
-                $set: {
-                    stats,
-                    dateInsert: new Date(),
-                },
-            }
-        );
-    } else {
-        // Add
-        await _db.collection("stats").insertOne({
+const setStatsUser = async (userId, stats) => {
+    await _db.collection(USER_COLLECTION).updateOne(
+        {
             userId,
-            stats,
-            dateInsert: new Date(),
-        });
-    }
-};
-
-const hasStatsFromUser = async (userId) => {
-    let stats = await _db.collection("stats").findOne({ userId });
-    return stats != null;
+        },
+        {
+            $set: {
+                stats,
+                statsDateInsert: new Date(),
+            },
+        }
+    );
 };
 
 const getLastMatchFromUser = async (userId) => {
@@ -275,11 +249,10 @@ module.exports = {
     getUserFromServer,
     getAllUsers,
     getLastStatsFromUser,
-    addStatsFromUser,
+    setStatsUser,
     getLastMatchFromUser,
     addMatchFromUser,
     getAllUsersTracked,
-    setScheduleToChannel,
     trackUser,
     untrackUser,
 };

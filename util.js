@@ -10,7 +10,7 @@ module.exports = {
     parseDuration,
     shuffle,
     formatDuration,
-    replyInteraction
+    replyInteraction,
 };
 
 const moment = require("moment");
@@ -103,7 +103,6 @@ function formatDuration(s) {
         .format("w[w] d[d] h[h] m[m] s[s]", { trim: "both mid" });
 }
 
-
 async function replyInteraction(client, interaction, response) {
     let data = {
         content: response,
@@ -114,15 +113,13 @@ async function replyInteraction(client, interaction, response) {
         data = await createAPIMessage(client, interaction, response);
     }
 
-    client.api
-        .interactions(interaction.id, interaction.token)
-        .callback.post({
-            data: {
-                type: 4,
-                data,
-            },
-        });
-};
+    client.api.interactions(interaction.id, interaction.token).callback.post({
+        data: {
+            type: 4,
+            data,
+        },
+    });
+}
 
 const createAPIMessage = async (client, interaction, content) => {
     const { data, files } = await DiscordJS.APIMessage.create(
