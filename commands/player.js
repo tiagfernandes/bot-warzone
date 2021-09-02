@@ -8,12 +8,22 @@ const { setStatsUser } = require("../db");
 
 /**
  * Return stats for user of message
- * @param {*} msg
+ * @param {*} client
+ * @param {*} interaction
+ * @param {integer|null} playerId
  */
-const statsMe = async (client, interaction) => {
-    let user = await db.getUser(interaction.member.user.id);
+const stats = async (client, interaction, playerId = null) => {
+    let user = await db.getUser(
+        playerId ? playerId : interaction.member.user.id
+    );
     if (!user) {
-        util.replyInteraction(client, interaction, `You are not registered.`);
+        util.replyInteraction(
+            client,
+            interaction,
+            playerId
+                ? `This player has not registered.`
+                : `You are not registered.`
+        );
     } else {
         try {
             const stats = await getBattleRoyaleInfo(
@@ -80,5 +90,5 @@ const statsMe = async (client, interaction) => {
 };
 
 module.exports = {
-    statsMe,
+    stats,
 };

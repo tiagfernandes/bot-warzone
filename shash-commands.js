@@ -97,7 +97,7 @@ const initSlashCommands = async (client) => {
             ],
         },
     });
-    
+
     console.log("unregister");
     await getApp(client).commands.post({
         data: {
@@ -106,7 +106,7 @@ const initSlashCommands = async (client) => {
         },
     });
 
-    /*console.log("track");
+    console.log("track");
     await getApp(client).commands.post({
         data: {
             name: "track",
@@ -124,10 +124,11 @@ const initSlashCommands = async (client) => {
 
     if (ADMIN_ROLE_ID) {
         console.log("channel-track");
-        await getApp(client).commands.post({
+        const { id } = await getApp(client).commands.post({
             data: {
                 name: "channel-track",
                 description: "Channel to display stats of tracked",
+                default_permission: false,
                 options: [
                     {
                         name: "channel",
@@ -136,17 +137,24 @@ const initSlashCommands = async (client) => {
                         required: true,
                     },
                 ],
-                permissions: [
-                    {
-                        id: ADMIN_ROLE_ID,
-                        type: 1,
-                        permission: false,
-                    },
-                ],
             },
         });
-    }
 
+        await getApp(client)
+            .commands(id)
+            .permissions.put({
+                data: {
+                    permissions: [
+                        {
+                            id: ADMIN_ROLE_ID,
+                            type: 1,
+                            permission: true,
+                        },
+                    ],
+                },
+            });
+    }
+    /*
     console.log("stats");
     await getApp(client).commands.post({
         data: {

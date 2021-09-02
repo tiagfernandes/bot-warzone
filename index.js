@@ -6,8 +6,8 @@ const { controller } = require("./controller");
 const codApi = require("./cod-api");
 const { initSlashCommands } = require("./shash-commands");
 
-const { startTrackStats } = require("./commands/track");
-const { statsMe } = require("./commands/player");
+const { setChannelTrack, getMatchTracked, track, untrack } = require("./commands/track");
+const { stats } = require("./commands/player");
 const {
     registerUser,
     changeUser,
@@ -47,6 +47,8 @@ async function initBot() {
         const commands = await getApp(guildId).commands.get();
         console.log(commands);
 
+        getMatchTracked();
+
         client.ws.on("INTERACTION_CREATE", async (interaction) => {
             const { name, options: optionsData } = interaction.data;
 
@@ -80,18 +82,24 @@ async function initBot() {
                     unregisterUser(client, interaction);
                     break;
                 case "channel-track":
-                    console.log("CHANNEL-TRACK");
+                    setChannelTrack(client, interaction, args);
                     break;
                 case "stats":
                     console.log("STATS");
                     if (args.hasOwnProperty("me")) {
                         // Stats me
-                        console.log("STATS ME");
-                        statsMe(client, interaction)
+                        stats(client, interaction);
                     } else if (args.hasOwnProperty("player")) {
                         // Stats player
-                        console.log("STATS PLAYER");
+                        stats(client, interaction, args["player"]);
                     }
+                    break;
+                case "track":
+                    console.log("TRACK");
+                    track(client, interaction);
+                    break;
+                case "untrack":
+                    untrack(client, interaction);
                     break;
                 default:
                     break;

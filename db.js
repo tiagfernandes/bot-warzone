@@ -30,12 +30,48 @@ const findChannel = async function (channelId) {
     return channel;
 };
 
+const setChannelTrack = async (serverId, channelId) => {
+    await _db.collection(SERVER_COLLECTION).updateOne(
+        { serverId },
+        {
+            $set: {
+                channel_track: channelId,
+            },
+        }
+    );
+};
+
+const getAllServersWithChannelTrack = async () => {
+    const servers = await _db.collection(SERVER_COLLECTION).find({
+        channel_track: { $exists: true },
+    }).toArray();
+    return servers;
+};
+
+const getAllUsersTrackedFromServer = async (serverId) => {
+    const server = await _db.collection(SERVER_COLLECTION).findOne({
+        serverId: serverId,
+    });
+
+    console.log(server);
+
+    if (server) {
+        const users = await _db.collection(USER_COLLECTION).find({
+            _id: { $in: server.users },
+            channel_track: { $exists: true },
+        }).toArray();
+
+        return users;
+    }
+    return [];
+};
+
 /**
  * Return User
  * @param {int} userId
  */
 const getUser = async (userId) => {
-    let user = await _db.collection(USER_COLLECTION).findOne({ userId });
+    const user = await _db.collection(USER_COLLECTION).findOne({ userId });
 
     return user;
 };
@@ -212,14 +248,14 @@ const hasMatchFromUser = async (userId) => {
     return match != null;
 };
 
-const trackUser = async (userId, channelId) => {
+const trackUser = async (userId) => {
     await _db.collection(USER_COLLECTION).updateOne(
         {
             userId,
         },
         {
             $set: {
-                track: channelId,
+                track: true,
             },
         }
     );
@@ -231,28 +267,31 @@ const untrackUser = async (userId) => {
             userId,
         },
         {
-            $unset: {
-                track: "",
+            $set: {
+                track: false,
             },
         }
     );
 };
 
 module.exports = {
-    init,
+    init: init,
+    getAllServersWithChannelTrack: getAllServersWithChannelTrack,
+    getAllUsersTrackedFromServer: getAllUsersTrackedFromServer,
     findChannel,
-    getUser,
-    addPlayer,
+    getUser: getUser,
+    addPlayer: addPlayer,
     modifyPlayer: modifyUser,
-    removeUser,
+    removeUser: removeUser,
     removeUserFromChannel,
-    getUserFromServer,
-    getAllUsers,
+    getUserFromServer: getUserFromServer,
+    getAllUsers: getAllUsers,
     getLastStatsFromUser,
     setStatsUser,
     getLastMatchFromUser,
     addMatchFromUser,
     getAllUsersTracked,
-    trackUser,
-    untrackUser,
+    trackUser: trackUser,
+    untrackUser: untrackUser,
+    setChannelTrack: setChannelTrack,
 };

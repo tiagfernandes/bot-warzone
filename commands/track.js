@@ -8,38 +8,59 @@ const { getBattleRoyaleMatchs } = require("../cod-api");
 const { sendMatchStats } = require("../stats");
 
 /**
- * Track a player
- * @param {*} msg
+ * Set a channel track for server
+ * @param {*} client
+ * @param {*} interaction
+ * @param {*} args
  */
-const track = async (msg) => {
-    let user = await db.getUser(msg.author.id);
-    if (!user) {
-        msg.reply("You are not registered.");
+const setChannelTrack = async (client, interaction, args) => {
+    const { channel } = args;
+
+    await db.setChannelTrack(interaction.guild_id, channel);
+
+    util.replyInteraction(client, interaction, `Channel track saved`);
+};
+
+const getMatchTracked = () => {
+    // récupe des serveurs où channel_track
+    // for each
+    //      recup user tracked
+    //      Promise All get lasts match
+
+    db.getAllServersWithChannelTrack().then((servers) => {
+        servers.forEach((server) => {
+            db.getAllUsersTrackedFromServer(server.serverId).then((users) => {
+                users.forEach(console.log);
+            });
+        });
+    });
+};
+
+/**
+ * Track a player
+ */
+const track = async (client, interaction) => {
+    let user = await db.getUser(interaction.member.user.id);
+
+    if (user) {
+        db.trackUser(user.userId);
+        util.replyInteraction(client, interaction, `You are tracked!`);
     } else {
-        await db.trackUser(user.userId, msg.channel.id);
-        await msg.reply(
-            `**${util.escapeMarkdown(user.username)}** (${
-                user.platform
-            }) tracked !`
-        );
+        util.replyInteraction(client, interaction, `You has not registed!`);
     }
 };
 
 /**
  * Untrack a player
- * @param {*} msg
  */
-const untrack = async (msg) => {
-    let user = await db.getUser(msg.author.id);
-    if (!user) {
-        msg.reply("You are not registered.");
+const untrack = async (client, interaction) => {
+    let user = await db.getUser(interaction.member.user.id);
+
+    if (user) {
+        db.untrackUser(user.userId);
+        util.replyInteraction(client, interaction, `You are untracked!`);
     } else {
-        await db.untrackUser(user.userId, msg.channel.id);
-        await msg.reply(
-            `**${util.escapeMarkdown(user.username)}** (${
-                user.platform
-            }) you are untracked !`
-        );
+        util.replyInteraction(client, interaction, `You has not registed!`);
     }
 };
 
@@ -186,5 +207,7 @@ const startTrackStats = async (client) => {
 module.exports = {
     track,
     untrack,
-    startTrackStats
+    startTrackStats,
+    setChannelTrack: setChannelTrack,
+    getMatchTracked: getMatchTracked,
 };
