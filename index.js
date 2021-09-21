@@ -1,12 +1,18 @@
 const DiscordJS = require("discord.js");
 const client = new DiscordJS.Client({ partials: ["MESSAGE", "REACTION"] });
+const CronJob = require("cron").CronJob;
 
 const db = require("./db");
 const { controller } = require("./controller");
 const codApi = require("./cod-api");
 const { initSlashCommands } = require("./shash-commands");
 
-const { setChannelTrack, getMatchTracked, track, untrack } = require("./commands/track");
+const {
+    setChannelTrack,
+    getMatchTracked,
+    track,
+    untrack,
+} = require("./commands/track");
 const { stats } = require("./commands/player");
 const {
     registerUser,
@@ -36,18 +42,17 @@ async function initBot() {
 
     // run when ready
     client.once("ready", async () => {
+        initCronJob(client);
+
         console.info(`Logged in as ${client.user.tag}`);
 
         const guildId = process.env.GUILD_ID;
-        console.log(guildId);
 
         console.log("initSlashCommands");
-        await initSlashCommands(client);
+        // await initSlashCommands(client);
 
         const commands = await getApp(guildId).commands.get();
         console.log(commands);
-
-        getMatchTracked();
 
         client.ws.on("INTERACTION_CREATE", async (interaction) => {
             const { name, options: optionsData } = interaction.data;
@@ -85,7 +90,6 @@ async function initBot() {
                     setChannelTrack(client, interaction, args);
                     break;
                 case "stats":
-                    console.log("STATS");
                     if (args.hasOwnProperty("me")) {
                         // Stats me
                         stats(client, interaction);
@@ -127,6 +131,7 @@ async function initBot() {
             .then(() => {
                 console.log("Logged to COD API");
 
+                return;
                 // startTrackStats(bot);
             })
             .catch(console.error);
@@ -149,6 +154,19 @@ async function initBot() {
         controller(msg);
     });
 }
+
+const initCronJob = (client) => {
+    let job = new CronJob(
+        "*/30 * * * * *",
+        function () {
+            getMatchTracked(client);
+        },
+        null,
+        true,
+        "Europe/Paris"
+    );
+    job.start();
+};
 
 process.on("unhandledRejection", (reason, p) => {
     console.log(p);

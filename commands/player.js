@@ -64,9 +64,7 @@ const stats = async (client, interaction, playerId = null) => {
                     util.replyInteraction(
                         client,
                         interaction,
-                        `Stats for **${util.escapeMarkdown(user.username)}** (${
-                            user.platform
-                        })`
+                        `Stats for **${util.escapeMarkdown(user.username)}**`
                     );
 
                     client.channels.cache

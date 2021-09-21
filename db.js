@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const moment = require("moment");
 const mongo = require("mongodb");
 const MongoClient = mongo.MongoClient;
 
@@ -41,10 +42,13 @@ const setChannelTrack = async (serverId, channelId) => {
     );
 };
 
-const getAllServersWithChannelTrack = async () => {
-    const servers = await _db.collection(SERVER_COLLECTION).find({
-        channel_track: { $exists: true },
-    }).toArray();
+const getServersWithChannelTrack = async () => {
+    const servers = await _db
+        .collection(SERVER_COLLECTION)
+        .find({
+            channel_track: { $exists: true },
+        })
+        .toArray();
     return servers;
 };
 
@@ -53,13 +57,14 @@ const getAllUsersTrackedFromServer = async (serverId) => {
         serverId: serverId,
     });
 
-    console.log(server);
-
     if (server) {
-        const users = await _db.collection(USER_COLLECTION).find({
-            _id: { $in: server.users },
-            channel_track: { $exists: true },
-        }).toArray();
+        const users = await _db
+            .collection(USER_COLLECTION)
+            .find({
+                _id: { $in: server.users },
+                track: { $exists: true },
+            })
+            .toArray();
 
         return users;
     }
@@ -256,6 +261,7 @@ const trackUser = async (userId) => {
         {
             $set: {
                 track: true,
+                trackedAt: moment().unix(),
             },
         }
     );
@@ -270,13 +276,34 @@ const untrackUser = async (userId) => {
             $set: {
                 track: false,
             },
+            $unset: {
+                trackedAt: null,
+            },
+        }
+    );
+};
+
+/**
+ *
+ * @param {*} user
+ * @param {array} matches
+ */
+const setMatches = async (userId, matches) => {
+    await _db.collection(USER_COLLECTION).updateOne(
+        {
+            userId,
+        },
+        {
+            $set: {
+                matches: matches,
+            },
         }
     );
 };
 
 module.exports = {
     init: init,
-    getAllServersWithChannelTrack: getAllServersWithChannelTrack,
+    getServersWithChannelTrack: getServersWithChannelTrack,
     getAllUsersTrackedFromServer: getAllUsersTrackedFromServer,
     findChannel,
     getUser: getUser,
@@ -294,4 +321,5 @@ module.exports = {
     trackUser: trackUser,
     untrackUser: untrackUser,
     setChannelTrack: setChannelTrack,
+    setMatches: setMatches,
 };

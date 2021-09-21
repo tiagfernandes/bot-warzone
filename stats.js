@@ -99,8 +99,25 @@ const sendMatchStats = async (matchs, client) => {
     });
 };
 
+/**
+ * 
+ * @param {*} channelTrack 
+ * @param {array} matches 
+ * @param {*} client 
+ */
+ const sendMatchesToChannelTrack = (client, channelTrack, matches) => {
+    matches.forEach((match) => {
+        generateImageMatch(match).then((image) => {
+            const attachment = new Discord.MessageAttachment(image, `match-${match.matchId}.png`);
+
+            client.channels.cache.get(channelTrack).send(attachment);
+        });
+    });
+};
+
 
 module.exports = {
     sendUserStats,
-    sendMatchStats
+    sendMatchStats,
+    sendMatchesToChannelTrack: sendMatchesToChannelTrack
 }
