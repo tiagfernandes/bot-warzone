@@ -1,11 +1,12 @@
 const DiscordJS = require("discord.js");
-const client = new DiscordJS.Client({ partials: ["MESSAGE", "REACTION"] });
+const client = new DiscordJS.Client({
+    partials: ["MESSAGE", "CHANNEL", "REACTION"],
+});
 const CronJob = require("cron").CronJob;
 
 const db = require("./db");
 const { controller } = require("./controller");
 const codApi = require("./cod-api");
-const { initSlashCommands } = require("./shash-commands");
 
 const {
     setChannelTrack,
@@ -19,6 +20,9 @@ const {
     changeUser,
     unregisterUser,
 } = require("./commands/register");
+const { setRolePlayer, setChannelInfo } = require("./commands/admin");
+const slashCommands = require("./slash-commands");
+const { REACTION_ACCEPT } = require("./commands/admin");
 
 init();
 
@@ -27,14 +31,6 @@ async function init() {
     await db.init();
     await initBot();
 }
-
-const getApp = (guildId) => {
-    const app = client.api.applications(client.user.id);
-    if (guildId) {
-        app.guilds(guildId);
-    }
-    return app;
-};
 
 async function initBot() {
     // login to bot
@@ -45,14 +41,6 @@ async function initBot() {
         initCronJob(client);
 
         console.info(`Logged in as ${client.user.tag}`);
-
-        const guildId = process.env.GUILD_ID;
-
-        console.log("initSlashCommands");
-        // await initSlashCommands(client);
-
-        const commands = await getApp(guildId).commands.get();
-        console.log(commands);
 
         client.ws.on("INTERACTION_CREATE", async (interaction) => {
             const { name, options: optionsData } = interaction.data;
@@ -72,57 +60,45 @@ async function initBot() {
                 }
             }
 
-            console.log("Command ", command);
-            console.log("Options ", optionsData);
-            console.log("Args ", args);
-
             switch (command) {
-                case "register":
-                    registerUser(client, interaction, args);
+                case slashCommands.ADMIN_ROLE_PLAYER:
+                    setRolePlayer(client, interaction, args);
                     break;
-                case "change-player":
-                    changeUser(client, interaction, args);
+                case slashCommands.ADMIN_CHANNEL_INFO:
+                    setChannelInfo(client, interaction, args);
                     break;
-                case "unregister":
-                    unregisterUser(client, interaction);
-                    break;
-                case "channel-track":
+                case slashCommands.ADMIN_CHANNEL_TRACK:
                     setChannelTrack(client, interaction, args);
                     break;
-                case "stats":
-                    if (args.hasOwnProperty("me")) {
+                case slashCommands.PLAYER_STATS:
+                    if (args.hasOwnProperty(slashCommands.PLAYER_STATS_ME)) {
                         // Stats me
                         stats(client, interaction);
-                    } else if (args.hasOwnProperty("player")) {
+                    } else if (
+                        args.hasOwnProperty(slashCommands.PLAYER_STATS_PLAYER)
+                    ) {
                         // Stats player
                         stats(client, interaction, args["player"]);
                     }
                     break;
-                case "track":
-                    console.log("TRACK");
+                case slashCommands.REGISTER_REGISTER:
+                    registerUser(client, interaction, args);
+                    break;
+                case slashCommands.REGISTER_UNREGISTER:
+                    unregisterUser(client, interaction);
+                    break;
+                case slashCommands.REGISTER_CHANGE_PLAYER:
+                    changeUser(client, interaction, args);
+                    break;
+                case slashCommands.TRACK_TRACK:
                     track(client, interaction);
                     break;
-                case "untrack":
+                case slashCommands.TRACK_UNTRACK:
                     untrack(client, interaction);
                     break;
                 default:
                     break;
             }
-
-            // if (command === "ping") {
-            //     reply(interaction, "pong");
-            // } else if (command === "embed") {
-            //     const embed = new DiscordJS.MessageEmbed().setTitle(
-            //         "Example Embed"
-            //     );
-
-            //     for (const arg in args) {
-            //         const value = args[arg];
-            //         embed.addField(arg, value);
-            //     }
-
-            //     reply(interaction, embed);
-            // }
         });
 
         // Login to API cods
@@ -130,9 +106,6 @@ async function initBot() {
             .login()
             .then(() => {
                 console.log("Logged to COD API");
-
-                return;
-                // startTrackStats(bot);
             })
             .catch(console.error);
     });
@@ -151,7 +124,65 @@ async function initBot() {
         );
 
         // forward to controller
-        controller(msg);
+        controller(client, msg);
+    });
+
+    client.on("messageReactionAdd", async (reaction, user) => {
+        // When a reaction is received, check if the structure is partial
+        if (reaction.partial) {
+            // If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
+            try {
+                await reaction.fetch();
+            } catch (error) {
+                console.error(
+                    "Something went wrong when fetching the message: ",
+                    error
+                );
+                // Return as `reaction.message.author` may be undefined/null
+                return;
+            }
+        }
+        // Find one server with guildId, channelId and messageId
+        const guildId = reaction.message.guild.id;
+        const channelId = reaction.message.channel.id;
+        const messageId = reaction.message.id;
+
+        const server = await db.getServerByGuildChannelMessage(
+            guildId,
+            channelId,
+            messageId
+        );
+        if (server) {
+            // If reaction == reaction for accept
+            if (reaction._emoji.name == REACTION_ACCEPT) {
+                // Add Role for user (Id registered)
+                reaction.message.guild
+                    .member(user.id)
+                    .roles.add(server.role_player_id);
+            }
+        }
+    });
+
+    client.on("messageReactionRemove", async (reaction, user) => {
+        // Find one server with guildId, channelId and messageId
+        const guildId = reaction.message.guild.id;
+        const channelId = reaction.message.channel.id;
+        const messageId = reaction.message.id;
+
+        const server = await db.getServerByGuildChannelMessage(
+            guildId,
+            channelId,
+            messageId
+        );
+        if (server) {
+            // If reaction == reaction for accept
+            if (reaction._emoji.name == REACTION_ACCEPT) {
+                // Add Role for user (Id registered)
+                reaction.message.guild
+                    .member(user.id)
+                    .roles.remove(server.role_player_id);
+            }
+        }
     });
 }
 

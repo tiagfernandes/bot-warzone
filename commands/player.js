@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { generateImageStats } = require("image-warzone");
+const { generateImageStats, generateImageMatch } = require("image-warzone");
 
 const db = require("../db");
 const util = require("../util");
@@ -8,6 +8,7 @@ const { setStatsUser } = require("../db");
 
 /**
  * Return stats for user of message
+ *
  * @param {*} client
  * @param {*} interaction
  * @param {integer|null} playerId
@@ -87,6 +88,25 @@ const stats = async (client, interaction, playerId = null) => {
     }
 };
 
+/**
+ * @param {*} client
+ * @param {*} channelTrack
+ * @param {array} matches
+ */
+const sendMatchesToChannelTrack = (client, channelTrack, matches) => {
+    matches.forEach((match) => {
+        generateImageMatch(match).then((image) => {
+            const attachment = new Discord.MessageAttachment(
+                image,
+                `match-${match.matchId}.png`
+            );
+
+            client.channels.cache.get(channelTrack).send(attachment);
+        });
+    });
+};
+
 module.exports = {
-    stats,
+    stats: stats,
+    sendMatchesToChannelTrack: sendMatchesToChannelTrack,
 };

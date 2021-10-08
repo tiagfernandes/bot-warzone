@@ -5,10 +5,11 @@ const db = require("../db");
 const util = require("../util");
 
 const { getBattleRoyaleMatchs } = require("../cod-api");
-const { sendMatchesToChannelTrack } = require("../stats");
+const { sendMatchesToChannelTrack } = require("./player");
 
 /**
  * Set a channel track for server
+ *
  * @param {*} client
  * @param {*} interaction
  * @param {*} args
@@ -22,7 +23,6 @@ const setChannelTrack = async (client, interaction, args) => {
 };
 
 /**
- *
  * @param {*} client
  */
 const getMatchTracked = (client) => {
@@ -38,8 +38,6 @@ const getMatchTracked = (client) => {
                 Promise.all(promises)
                     .then((result) => {
                         // Result array of array of match
-                        console.log("Result");
-
                         let matches = [];
 
                         result.forEach((players) => {
@@ -84,10 +82,9 @@ const getMatchTracked = (client) => {
                             });
                         });
 
-                        console.log(matches);
                         sendMatchesToChannelTrack(
                             client,
-                            server.channel_track,
+                            server.channel_track_id,
                             matches
                         );
                     })
@@ -123,7 +120,7 @@ function getMatchesNotTracked(player) {
             });
 
             // Update player.matches = newMatches;
-            db.setMatches(player.userId, newMatches);
+            db.setMatchesToPlayer(player.userId, newMatches);
 
             resolve(matches);
         } catch (e) {
@@ -189,121 +186,9 @@ const getGameMode = (mode) => {
     return result;
 };
 
-//TODO a check pour le lancer en cron
-const startTrackStats = async (client) => {
-    setInterval(async () => {
-        try {
-            // Get all users tracked
-            let users = await db.getAllUsersTracked();
-
-            // If no users, do nothing
-            if (users.length > 0) {
-                let arrayMatchs = [];
-
-                // For each users
-                for (const user of users) {
-                    console.log(`Traitement de ${user.username}`);
-                    try {
-                        // Get lasts matchs of user
-                        let matchs = await getBattleRoyaleMatchs(
-                            user.platform,
-                            user.username
-                        );
-
-                        // Select the last one
-                        const playerLastGame = matchs[0];
-                        const matchId = playerLastGame.matchID;
-
-                        // New date to compare if math is recent
-                        let compareDate = new Date();
-                        compareDate.setMinutes(
-                            compareDate.getMinutes() - process.env.MAX_DURATION
-                        );
-
-                        if (
-                            new Date(playerLastGame.utcEndSeconds * 1000) >=
-                            compareDate
-                        ) {
-                            // Get last game Saved
-                            const lastGame = await db.getLastMatchFromUser(
-                                user.userId
-                            );
-
-                            // Si la derniere partie est enregistrée et que le matchId est le meme ignorer
-                            if (!lastGame || lastGame.matchId != matchId) {
-                                console.log(
-                                    `La game ${matchId} de ${user.username} n'a pas été traitée`
-                                );
-
-                                // Set Last match in bdd
-                                await db.addMatchFromUser(user.userId, matchId);
-
-                                const stats = {
-                                    matchId: playerLastGame.matchID,
-                                    channel: user.track,
-                                    top: playerLastGame.playerStats
-                                        .teamPlacement,
-                                    mode: getGameMode(playerLastGame.mode),
-                                    matchEnded: playerLastGame.utcEndSeconds,
-                                    players: [
-                                        {
-                                            playerName:
-                                                playerLastGame.player.username,
-                                            kdr: playerLastGame.playerStats
-                                                .kdRatio,
-                                            kills: playerLastGame.playerStats
-                                                .kills,
-                                            deaths: playerLastGame.playerStats
-                                                .deaths,
-                                            headshots:
-                                                playerLastGame.playerStats
-                                                    .headshots,
-                                            damageDealt:
-                                                playerLastGame.playerStats
-                                                    .damageDone,
-                                            damageTaken:
-                                                playerLastGame.playerStats
-                                                    .damageTaken,
-                                            reviver: playerLastGame.playerStats
-                                                .objectiveReviver
-                                                ? playerLastGame.playerStats
-                                                      .objectiveReviver
-                                                : 0,
-                                        },
-                                    ],
-                                };
-
-                                const matchIndex = arrayMatchs.findIndex(
-                                    (e) => e.matchId == playerLastGame.matchID
-                                );
-
-                                if (matchIndex >= 0) {
-                                    arrayMatchs[matchIndex].players.push(
-                                        stats.players[0]
-                                    );
-                                } else {
-                                    arrayMatchs.push(stats);
-                                }
-                            }
-                        }
-                    } catch (Error) {
-                        console.log(Error);
-                    }
-                    console.log(`Fin traitement de ${user.username}`);
-                }
-                sendMatchesToChannelTrack(arrayMatchs, client);
-            }
-        } catch (Error) {
-            //Handle Exception
-            console.error(Error);
-        }
-    }, process.env.FIND_GAME_INTERVAL * 1000);
-};
-
 module.exports = {
-    track,
-    untrack,
-    startTrackStats,
+    track: track,
+    untrack: untrack,
     setChannelTrack: setChannelTrack,
     getMatchTracked: getMatchTracked,
 };

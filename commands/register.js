@@ -33,7 +33,7 @@ const registerUser = async (client, interaction, args) => {
     const { platform, username } = args;
 
     let user = await db.getUserFromServer(
-        interaction.channel_id,
+        interaction.guild_id,
         username,
         platform
     );
@@ -75,6 +75,30 @@ const registerUser = async (client, interaction, args) => {
     }
 };
 
+/**
+ * Unregister a user
+ */
+ const unregisterUser = async (client, interaction) => {
+    let user = await db.getUser(interaction.member.user.id);
+
+    if (user) {
+        // Remove user
+        await db.removeUser(user._id);
+        util.replyInteraction(
+            client,
+            interaction,
+            `You has been unregistered!`
+        );
+    } else {
+        util.replyInteraction(client, interaction, `You has not registed!`);
+    }
+};
+
+/**
+ * @param {*} client
+ * @param {*} interaction
+ * @param {*} args
+ */
 const changeUser = async (client, interaction, args) => {
     const { platform, username } = args;
 
@@ -84,7 +108,8 @@ const changeUser = async (client, interaction, args) => {
         let player = await getPlayerProfile(platform, username);
 
         if (player) {
-            await db.modifyPlayer(interaction, player.username, player.platform)
+            await db
+                .modifyPlayer(interaction, player.username, player.platform)
                 .then(() => {
                     util.replyInteraction(
                         client,
@@ -113,28 +138,9 @@ const changeUser = async (client, interaction, args) => {
     }
 };
 
-/**
- * Unregister a user
- */
-const unregisterUser = async (client, interaction) => {
-    let user = await db.getUser(interaction.member.user.id);
-
-    if (user) {
-        // Remove user
-        await db.removeUser(user._id);
-        util.replyInteraction(
-            client,
-            interaction,
-            `You has been unregistered!`
-        );
-    } else {
-        util.replyInteraction(client, interaction, `You has not registed!`);
-    }
-};
-
 module.exports = {
     registrants,
-    registerUser,
-    changeUser,
-    unregisterUser,
+    registerUser: registerUser,
+    changeUser: changeUser,
+    unregisterUser: unregisterUser,
 };
