@@ -25,9 +25,9 @@ const commands = {
     },
     register: {
         method: registerUser,
-        syntax: "register <psn|xbl|battle|acti> <username>",
+        syntax: "register <psn|xbl|battle|acti|uno> <username>",
         help: "Registers a new user",
-        rx: /^!wz register (psn|xbl|battle|acti) [0-9A-Za-z#_-]+$/,
+        rx: /^!wz register (psn|xbl|battle|acti|uno) [0-9A-Za-z#_-]+$/,
     },
     unregister: {
         method: unregisterUser,
