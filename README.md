@@ -31,6 +31,9 @@ This command create automaticly a message infomation and rules. If user clic to 
 
 `/channel-track @CHANNEL_TRACK`
 
+### Set ROLE_PLAYER to bot
+
+Set Role player to bot to send message to private channels
 
 ---
 ## Player - Commands

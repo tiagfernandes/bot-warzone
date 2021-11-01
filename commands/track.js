@@ -97,6 +97,9 @@ const getMatchTracked = (client) => {
 function getMatchesNotTracked(player) {
     return new Promise(async (resolve, reject) => {
         try {
+            console.log(
+                `Traitement de ${player.username} (${player.platform})`
+            );
             // If has old matches, else empty array
             const oldMatches = player.matches || [];
             // Get last 20 matches
@@ -106,22 +109,31 @@ function getMatchesNotTracked(player) {
             );
 
             let matches = [];
+            if (newMatches.length > 0) {
+                // Trie des plus vieux avant
+                newMatches.sort((a, b) => {
+                    return a.utcEndSeconds - b.utcEndSeconds;
+                });
 
-            newMatches.forEach((newMatch) => {
-                if (newMatch.utcEndSeconds > player.trackedAt) {
-                    const found = oldMatches.find(
-                        (oldMatch) => oldMatch.matchID == newMatch.matchID
-                    );
+                newMatches.forEach((newMatch) => {
+                    if (newMatch.utcEndSeconds > player.trackedAt) {
+                        const found = oldMatches.find(
+                            (oldMatch) => oldMatch.matchID == newMatch.matchID
+                        );
 
-                    if (found == undefined) {
-                        matches = [...matches, newMatch];
+                        if (found == undefined) {
+                            matches = [...matches, newMatch];
+                        }
                     }
-                }
-            });
+                });
 
-            // Update player.matches = newMatches;
-            db.setMatchesToPlayer(player.userId, newMatches);
+                // Update player.matches = newMatches;
+                db.setMatchesToPlayer(player.userId, newMatches);
+            }
 
+            console.log(
+                `Fin de traitement de ${player.username} (${player.platform})`
+            );
             resolve(matches);
         } catch (e) {
             reject(e);

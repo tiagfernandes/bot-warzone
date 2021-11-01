@@ -6,7 +6,7 @@ const API = require("call-of-duty-api")();
 
 /**
  * Login to Call-of-Duty API
- * @returns 
+ * @returns
  */
 async function login() {
     if (env == "dev") {
@@ -41,11 +41,14 @@ async function login() {
  */
 const getPlayerProfile = async (platform, username) => {
     try {
-        await API.MWBattleData(username, platform);
-        return { username, platform };
+        const wz = await API.MWwz(username, platform);
+        return {
+            username: wz.username,
+            platform: platform,
+        };
     } catch (Error) {
         console.log(Error);
-        return false;
+        return null;
     }
 };
 
@@ -73,7 +76,7 @@ const getBattleRoyaleInfo = async (platform, username) => {
  */
 const getBattleRoyaleMatchs = async (platform, username) => {
     let data = await API.MWcombatwz(username, platform);
-    return data.matches;
+    return data.matches ?? [];
 };
 
 module.exports = {

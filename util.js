@@ -4,6 +4,7 @@ module.exports = {
     isValidCron: require("cron-validator").isValidCron,
     tokenize: tokenize,
     replyInteraction: replyInteraction,
+    escapeMarkdown: escapeMarkdown,
 };
 
 const moment = require("moment");
@@ -30,6 +31,15 @@ async function replyInteraction(client, interaction, response) {
             data,
         },
     });
+}
+
+/**
+ *
+ * @param {*} text
+ * @returns
+ */
+function escapeMarkdown(text) {
+    return text.replace(/([_])/, "$1");
 }
 
 const createAPIMessage = async (client, interaction, content) => {

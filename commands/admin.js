@@ -3,7 +3,13 @@ const db = require("../db");
 const { initSlashCommands } = require("../slash-commands");
 
 const REACTION_ACCEPT = "🔫";
-const MESSAGE_INFO = `Pour accepté les règles, clique sur ${REACTION_ACCEPT}`;
+const MESSAGE_INFO = `***Règles des salons WARZONE:***
+Les salons servent uniquement pour les stats de Call-Of-Duty Warzone.
+Le salon Warzone-Stats, vous permet d'afficher vos stats et celles de vos amis.
+Le salon Warzone-track affichera uniquement les matches joués, si vous êtes *tracké*. Pour être tracké, utilisé la commande \`/track\`.
+
+En acceptant les règles, vous aurez accès aux salons.
+**Pour accepter**, clique sur ${REACTION_ACCEPT}`;
 
 /**
  * Set role admin
@@ -14,6 +20,8 @@ const MESSAGE_INFO = `Pour accepté les règles, clique sur ${REACTION_ACCEPT}`;
 async function setRoleAdmin(client, msg) {
     let tokens = util.tokenize(msg.content);
     let roleAdminId = /<@&([0-9]{10,})>/.exec(tokens[2])[1];
+
+    //TODO check if role_admin existe for this server, if existe check if author has role existing admin
 
     await db.setRoleAdminId(msg.guild.id, roleAdminId);
 
@@ -32,8 +40,6 @@ async function setRoleAdmin(client, msg) {
  */
 async function setRolePlayer(client, interaction, args) {
     const { role } = args;
-
-    console.log(role);
 
     db.setRolePlayerId(interaction.guild_id, role).then(() => {
         util.replyInteraction(

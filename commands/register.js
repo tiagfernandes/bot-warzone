@@ -46,7 +46,7 @@ const registerUser = async (client, interaction, args) => {
         );
     } else {
         let player = await getPlayerProfile(platform, username);
-
+        
         if (player) {
             db.addPlayer(interaction, player.username, player.platform)
                 .then(() => {

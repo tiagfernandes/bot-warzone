@@ -32,6 +32,10 @@ const stats = async (client, interaction, playerId = null) => {
                 user.username
             );
 
+            if(!stats){
+                throw new Error('No stats');
+            }
+
             const lastStats = user.stats || null;
 
             let playername = user.username;

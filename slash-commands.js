@@ -217,10 +217,6 @@ const initSlashCommands = async (client, guildId, roleAdminId) => {
                                 name: "BattleNET",
                                 value: "battle",
                             },
-                            {
-                                name: "Steam",
-                                value: "steam",
-                            },
                         ],
                     },
                     {
