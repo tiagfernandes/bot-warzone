@@ -35,58 +35,62 @@ const getMatchTracked = (client) => {
                 // Promise.all()
                 const promises = users.map((u) => getMatchesNotTracked(u));
 
-                Promise.all(promises)
+                Promise.allSettled(promises)
                     .then((result) => {
-                        // Result array of array of match
-                        let matches = [];
+                        const { status, value, reason } = result;
+                        if (status == 'fulfilled'){
+                            // Result array of array of match
+                            let matches = [];
+                            value.forEach((players) => {
+                                players.forEach((match) => {
+                                    const stats = {
+                                        matchId: match.matchID,
+                                        top: match.playerStats.teamPlacement,
+                                        mode: getGameMode(match.mode),
+                                        matchEnded: match.utcEndSeconds,
+                                        players: [
+                                            {
+                                                playerName: match.player.username,
+                                                kdr: match.playerStats.kdRatio,
+                                                kills: match.playerStats.kills,
+                                                deaths: match.playerStats.deaths,
+                                                headshots:
+                                                    match.playerStats.headshots,
+                                                damageDealt:
+                                                    match.playerStats.damageDone,
+                                                damageTaken:
+                                                    match.playerStats.damageTaken,
+                                                reviver: match.playerStats
+                                                    .objectiveReviver
+                                                    ? match.playerStats
+                                                          .objectiveReviver
+                                                    : 0,
+                                            },
+                                        ],
+                                    };
 
-                        result.forEach((players) => {
-                            players.forEach((match) => {
-                                const stats = {
-                                    matchId: match.matchID,
-                                    top: match.playerStats.teamPlacement,
-                                    mode: getGameMode(match.mode),
-                                    matchEnded: match.utcEndSeconds,
-                                    players: [
-                                        {
-                                            playerName: match.player.username,
-                                            kdr: match.playerStats.kdRatio,
-                                            kills: match.playerStats.kills,
-                                            deaths: match.playerStats.deaths,
-                                            headshots:
-                                                match.playerStats.headshots,
-                                            damageDealt:
-                                                match.playerStats.damageDone,
-                                            damageTaken:
-                                                match.playerStats.damageTaken,
-                                            reviver: match.playerStats
-                                                .objectiveReviver
-                                                ? match.playerStats
-                                                      .objectiveReviver
-                                                : 0,
-                                        },
-                                    ],
-                                };
-
-                                const matchIndex = matches.findIndex(
-                                    (e) => e.matchId == match.matchID
-                                );
-
-                                if (matchIndex >= 0) {
-                                    matches[matchIndex].players.push(
-                                        stats.players[0]
+                                    const matchIndex = matches.findIndex(
+                                        (e) => e.matchId == match.matchID
                                     );
-                                } else {
-                                    matches.push(stats);
-                                }
-                            });
-                        });
 
-                        sendMatchesToChannelTrack(
-                            client,
-                            server.channel_track_id,
-                            matches
-                        );
+                                    if (matchIndex >= 0) {
+                                        matches[matchIndex].players.push(
+                                            stats.players[0]
+                                        );
+                                    } else {
+                                        matches.push(stats);
+                                    }
+                                });
+                            });
+
+                            sendMatchesToChannelTrack(
+                                client,
+                                server.channel_track_id,
+                                matches
+                            );
+                        } else if (status == 'rejected'){
+                            console.error(reason)   
+                        }
                     })
                     .catch(console.error);
             });
