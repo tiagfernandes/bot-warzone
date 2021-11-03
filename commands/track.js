@@ -38,6 +38,11 @@ const getMatchTracked = (client) => {
                 Promise.allSettled(promises)
                     .then((result) => {
                         const { status, value, reason } = result;
+                    
+                        console.log(status);
+                        console.log(value);
+                        console.log(reason);
+                    
                         if (status == 'fulfilled'){
                             // Result array of array of match
                             let matches = [];
