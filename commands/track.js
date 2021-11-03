@@ -107,6 +107,8 @@ function getMatchesNotTracked(player) {
                 player.platform,
                 player.username
             );
+            
+            console.log(`${player.username} ${newMatches.length} matches`);
 
             let matches = [];
             if (newMatches.length > 0) {
