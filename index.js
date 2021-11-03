@@ -187,7 +187,7 @@ async function initBot() {
 
 const initCronJob = (client) => {
     let job = new CronJob(
-        "*/30 * * * * *",
+        "*/60 * * * * *",
         function () {
             getMatchTracked(client);
         },
