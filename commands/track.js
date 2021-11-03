@@ -86,16 +86,16 @@ const getMatchTracked = (client) => {
                                         matches.push(stats);
                                     }
                                 });
-
-                                sendMatchesToChannelTrack(
-                                    client,
-                                    server.channel_track_id,
-                                    matches
-                                );
                             } else if (status == "rejected") {
                                 console.error(reason);
                             }
                         });
+
+                        sendMatchesToChannelTrack(
+                            client,
+                            server.channel_track_id,
+                            matches
+                        );
                     })
                     .catch(console.error);
             });

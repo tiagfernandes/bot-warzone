@@ -17,6 +17,7 @@ const stats = async (client, interaction, playerId = null) => {
     let user = await db.getUser(
         playerId ? playerId : interaction.member.user.id
     );
+
     if (!user) {
         util.replyInteraction(
             client,
@@ -27,13 +28,17 @@ const stats = async (client, interaction, playerId = null) => {
         );
     } else {
         try {
+            client.api
+                .interactions(interaction.id, interaction.token)
+                .deferReply();
+
             const stats = await getBattleRoyaleInfo(
                 user.platform,
                 user.username
             );
 
-            if(!stats){
-                throw new Error('No stats');
+            if (!stats) {
+                throw new Error("No stats");
             }
 
             const lastStats = user.stats || null;
