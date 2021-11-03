@@ -46,8 +46,8 @@ const getPlayerProfile = async (platform, username) => {
             username: wz.username,
             platform: platform,
         };
-    } catch (Error) {
-        console.log(Error);
+    } catch (e) {
+        console.error(e);
         return null;
     }
 };

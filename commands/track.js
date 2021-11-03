@@ -42,11 +42,7 @@ const getMatchTracked = (client) => {
                         results.forEach((result) => {
                             const { status, value, reason } = result;
 
-                            console.log(status);
-                            console.log(value);
-                            console.log(reason);
-
-                            if (status == 'fulfilled') {
+                            if (status == "fulfilled") {
                                 value.forEach((match) => {
                                     const stats = {
                                         matchId: match.matchID,
@@ -55,20 +51,24 @@ const getMatchTracked = (client) => {
                                         matchEnded: match.utcEndSeconds,
                                         players: [
                                             {
-                                                playerName: match.player.username,
+                                                playerName:
+                                                    match.player.username,
                                                 kdr: match.playerStats.kdRatio,
                                                 kills: match.playerStats.kills,
-                                                deaths: match.playerStats.deaths,
+                                                deaths: match.playerStats
+                                                    .deaths,
                                                 headshots:
                                                     match.playerStats.headshots,
                                                 damageDealt:
-                                                    match.playerStats.damageDone,
+                                                    match.playerStats
+                                                        .damageDone,
                                                 damageTaken:
-                                                    match.playerStats.damageTaken,
+                                                    match.playerStats
+                                                        .damageTaken,
                                                 reviver: match.playerStats
                                                     .objectiveReviver
                                                     ? match.playerStats
-                                                        .objectiveReviver
+                                                          .objectiveReviver
                                                     : 0,
                                             },
                                         ],
@@ -92,8 +92,8 @@ const getMatchTracked = (client) => {
                                     server.channel_track_id,
                                     matches
                                 );
-                            } else if (status == 'rejected') {
-                                console.error(reason)
+                            } else if (status == "rejected") {
+                                console.error(reason);
                             }
                         });
                     })

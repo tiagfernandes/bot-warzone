@@ -46,10 +46,12 @@ const registerUser = async (client, interaction, args) => {
         );
     } else {
         let player = await getPlayerProfile(platform, username);
+        console.log(player);
         
         if (player) {
             db.addPlayer(interaction, player.username, player.platform)
                 .then(() => {
+                    console.log(`${player.username} (${player.platform}) registered`);
                     util.replyInteraction(
                         client,
                         interaction,
@@ -84,6 +86,8 @@ const registerUser = async (client, interaction, args) => {
     if (user) {
         // Remove user
         await db.removeUser(user._id);
+
+        console.log(`UserId ${user._id} unregistered`);
         util.replyInteraction(
             client,
             interaction,
