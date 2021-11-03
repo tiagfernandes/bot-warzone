@@ -36,18 +36,18 @@ const getMatchTracked = (client) => {
                 const promises = users.map((u) => getMatchesNotTracked(u));
 
                 Promise.allSettled(promises)
-                    .then((result) => {
-                        const { status, value, reason } = result;
-                    
-                        console.log(status);
-                        console.log(value);
-                        console.log(reason);
-                    
-                        if (status == 'fulfilled'){
-                            // Result array of array of match
-                            let matches = [];
-                            value.forEach((players) => {
-                                players.forEach((match) => {
+                    .then((results) => {
+                        // Result array of array of match
+                        let matches = [];
+                        results.forEach((result) => {
+                            const { status, value, reason } = result;
+
+                            console.log(status);
+                            console.log(value);
+                            console.log(reason);
+
+                            if (status == 'fulfilled') {
+                                value.forEach((match) => {
                                     const stats = {
                                         matchId: match.matchID,
                                         top: match.playerStats.teamPlacement,
@@ -68,7 +68,7 @@ const getMatchTracked = (client) => {
                                                 reviver: match.playerStats
                                                     .objectiveReviver
                                                     ? match.playerStats
-                                                          .objectiveReviver
+                                                        .objectiveReviver
                                                     : 0,
                                             },
                                         ],
@@ -86,16 +86,16 @@ const getMatchTracked = (client) => {
                                         matches.push(stats);
                                     }
                                 });
-                            });
 
-                            sendMatchesToChannelTrack(
-                                client,
-                                server.channel_track_id,
-                                matches
-                            );
-                        } else if (status == 'rejected'){
-                            console.error(reason)   
-                        }
+                                sendMatchesToChannelTrack(
+                                    client,
+                                    server.channel_track_id,
+                                    matches
+                                );
+                            } else if (status == 'rejected') {
+                                console.error(reason)
+                            }
+                        });
                     })
                     .catch(console.error);
             });
@@ -116,8 +116,6 @@ function getMatchesNotTracked(player) {
                 player.platform,
                 player.username
             );
-            
-            console.log(`${player.username} ${newMatches.length} matches`);
 
             let matches = [];
             if (newMatches.length > 0) {
@@ -143,7 +141,7 @@ function getMatchesNotTracked(player) {
             }
 
             console.log(
-                `Fin de traitement de ${player.username} (${player.platform})`
+                `Fin de traitement de ${player.username} (${player.platform}) avec ${matches.length} matches`
             );
             resolve(matches);
         } catch (e) {
