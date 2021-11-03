@@ -38,8 +38,6 @@ async function initBot() {
 
     // run when ready
     client.once("ready", async () => {
-        initCronJob(client);
-
         console.info(`Logged in as ${client.user.tag}`);
 
         client.ws.on("INTERACTION_CREATE", async (interaction) => {
@@ -106,6 +104,7 @@ async function initBot() {
             .login()
             .then(() => {
                 console.log("Logged to COD API");
+                initCronJob(client);
             })
             .catch(console.error);
     });
