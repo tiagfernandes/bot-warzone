@@ -136,7 +136,7 @@ function getMatchesNotTracked(player) {
             );
             resolve(matches);
         } catch (e) {
-            console.log(`Error ${player.username} : ${e.message}`);
+            console.log(`Error ${player.username} : ${e}`);
             reject(e);
         }
     });
