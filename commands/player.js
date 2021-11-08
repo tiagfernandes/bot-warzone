@@ -59,8 +59,8 @@ const stats = async (client, interaction, playerId = null) => {
                 lastStats.timePlayed !== stats.timePlayed
             ) {
                 data.oldStats = {
-                    ...lastStats.stats,
-                    dateInsert: lastStats.dateInsert,
+                    ...lastStats,
+                    dateInsert: user.statsDateInsert,
                 };
             }
 
