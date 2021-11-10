@@ -63,6 +63,13 @@ const stats = async (client, interaction, playerId = null) => {
                     dateInsert: user.statsDateInsert,
                 };
             }
+            
+            
+            util.replyInteraction(
+                client,
+                interaction,
+                `Stats for **${util.escapeMarkdown(user.username)}**`
+            );
 
             generateImageStats(data)
                 .then(async (image) => {
@@ -70,13 +77,7 @@ const stats = async (client, interaction, playerId = null) => {
                         image,
                         "stats_me.png"
                     );
-
-                    util.replyInteraction(
-                        client,
-                        interaction,
-                        `Stats for **${util.escapeMarkdown(user.username)}**`
-                    );
-
+                
                     client.channels.cache
                         .get(interaction.channel_id)
                         .send(attachment);
