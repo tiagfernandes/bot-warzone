@@ -1,6 +1,6 @@
 {
   "name": "warzone-stats",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Warzone Battle Royale stats",
   "main": "index.js",
   "scripts": {
