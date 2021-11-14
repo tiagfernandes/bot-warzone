@@ -1,6 +1,8 @@
 /**
  * Tracking du player
  */
+const fetch = require("node-fetch");
+
 const db = require("../db");
 const util = require("../util");
 
@@ -36,60 +38,81 @@ const getMatchTracked = (client) => {
                 const promises = users.map((u) => getMatchesNotTracked(u));
 
                 Promise.allSettled(promises)
-                    .then((results) => {
+                    .then(async (results) => {
                         // Result array of array of match
                         let matches = [];
-                        results.forEach((result) => {
-                            const { status, value, reason } = result;
+                        await Promise.all(
+                            results.map(async (result) => {
+                                const { status, value, reason } = result;
 
-                            if (status == "fulfilled") {
-                                value.forEach((match) => {
-                                    const stats = {
-                                        matchId: match.matchID,
-                                        top: match.playerStats.teamPlacement,
-                                        mode: getGameMode(match.mode),
-                                        matchEnded: match.utcEndSeconds,
-                                        players: [
-                                            {
-                                                playerName:
-                                                    match.player.username,
-                                                kdr: match.playerStats.kdRatio,
-                                                kills: match.playerStats.kills,
-                                                deaths: match.playerStats
-                                                    .deaths,
-                                                headshots:
-                                                    match.playerStats.headshots,
-                                                damageDealt:
-                                                    match.playerStats
-                                                        .damageDone,
-                                                damageTaken:
-                                                    match.playerStats
-                                                        .damageTaken,
-                                                reviver: match.playerStats
-                                                    .objectiveReviver
-                                                    ? match.playerStats
-                                                          .objectiveReviver
-                                                    : 0,
-                                            },
-                                        ],
-                                    };
+                                if (status == "fulfilled") {
+                                    await Promise.all(
+                                        value.map(async (match) => {
+                                            const stats = {
+                                                matchId: match.matchID,
+                                                top: match.playerStats
+                                                    .teamPlacement,
+                                                mode: await getGameMode(
+                                                    match.mode
+                                                ),
+                                                matchEnded: match.utcEndSeconds,
+                                                players: [
+                                                    {
+                                                        playerName:
+                                                            match.player
+                                                                .username,
+                                                        kdr: match.playerStats
+                                                            .kdRatio,
+                                                        kills: match.playerStats
+                                                            .kills,
+                                                        deaths: match
+                                                            .playerStats.deaths,
+                                                        headshots:
+                                                            match.playerStats
+                                                                .headshots,
+                                                        damageDealt:
+                                                            match.playerStats
+                                                                .damageDone,
+                                                        damageTaken:
+                                                            match.playerStats
+                                                                .damageTaken,
+                                                        reviver: match
+                                                            .playerStats
+                                                            .objectiveReviver
+                                                            ? match.playerStats
+                                                                  .objectiveReviver
+                                                            : 0,
+                                                    },
+                                                ],
+                                            };
 
-                                    const matchIndex = matches.findIndex(
-                                        (e) => e.matchId == match.matchID
+                                            const matchIndex =
+                                                matches.findIndex(
+                                                    (e) =>
+                                                        e.matchId ==
+                                                        match.matchID
+                                                );
+
+                                            if (matchIndex >= 0) {
+                                                matches[
+                                                    matchIndex
+                                                ].players.push(
+                                                    stats.players[0]
+                                                );
+                                            } else {
+                                                matches.push(stats);
+                                            }
+                                        })
                                     );
+                                } else if (status == "rejected") {
+                                    console.error(reason);
+                                }
+                            })
+                        );
 
-                                    if (matchIndex >= 0) {
-                                        matches[matchIndex].players.push(
-                                            stats.players[0]
-                                        );
-                                    } else {
-                                        matches.push(stats);
-                                    }
-                                });
-                            } else if (status == "rejected") {
-                                console.error(reason);
-                            }
-                        });
+                        console.log(
+                            `Send ${matches.length} matches to ${server.channel_track_id}`
+                        );
 
                         sendMatchesToChannelTrack(
                             client,
@@ -179,6 +202,26 @@ const untrack = async (client, interaction) => {
 };
 
 const getGameMode = (mode) => {
+    return new Promise((resolve) => {
+        let url =
+            "https://my.callofduty.com/content/atvi/callofduty/mycod/web/en/data/json/iq-content-xweb.js";
+
+        fetch(url)
+            .then((res) => res.json())
+            .then((json) => {
+                const gameMode = Object.keys(json)
+                    .filter((key) => /^game-modes:/.exec(key))
+                    .find((key) => {
+                        return key.includes(mode);
+                    });
+
+                resolve(json[gameMode] ?? returnGameModeBrut(mode));
+            })
+            .catch(() => resolve(returnGameModeBrut(mode)));
+    });
+};
+
+const returnGameModeBrut = (mode) => {
     let result = "";
 
     switch (mode) {
