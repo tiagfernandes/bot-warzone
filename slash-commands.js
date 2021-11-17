@@ -2,6 +2,7 @@
 const ADMIN_ROLE_PLAYER = "role-player";
 const ADMIN_CHANNEL_INFO = "channel-info";
 const ADMIN_CHANNEL_TRACK = "channel-track";
+const ADMIN_REFRESH_COMMANDS = "refresh-commands";
 // !ADMIN
 
 // PLAYER
@@ -148,6 +149,36 @@ const initSlashCommands = async (client, guildId, roleAdminId) => {
                 .then(() => {
                     console.log(
                         "Command ADMIN " + ADMIN_CHANNEL_TRACK + " DONE"
+                    );
+                });
+        });
+
+    console.log("Command ADMIN " + ADMIN_REFRESH_COMMANDS);
+    getApp(client, guildId)
+        .commands.post({
+            data: {
+                name: ADMIN_REFRESH_COMMANDS,
+                description: "Refresh all slash commands",
+                default_permission: false,
+            },
+        })
+        .then(({ id }) => {
+            getApp(client, guildId)
+                .commands(id)
+                .permissions.put({
+                    data: {
+                        permissions: [
+                            {
+                                id: roleAdminId,
+                                type: 1,
+                                permission: true,
+                            },
+                        ],
+                    },
+                })
+                .then(() => {
+                    console.log(
+                        "Command ADMIN " + ADMIN_REFRESH_COMMANDS + " DONE"
                     );
                 });
         });
@@ -320,6 +351,7 @@ module.exports = {
     ADMIN_ROLE_PLAYER: ADMIN_ROLE_PLAYER,
     ADMIN_CHANNEL_INFO: ADMIN_CHANNEL_INFO,
     ADMIN_CHANNEL_TRACK: ADMIN_CHANNEL_TRACK,
+    ADMIN_REFRESH_COMMANDS: ADMIN_REFRESH_COMMANDS,
     PLAYER_STATS: PLAYER_STATS,
     PLAYER_STATS_ME: PLAYER_STATS_ME,
     PLAYER_STATS_PLAYER: PLAYER_STATS_PLAYER,

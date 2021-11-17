@@ -20,7 +20,11 @@ const {
     changeUser,
     unregisterUser,
 } = require("./commands/register");
-const { setRolePlayer, setChannelInfo } = require("./commands/admin");
+const {
+    setRolePlayer,
+    setChannelInfo,
+    refreshSlashCommands,
+} = require("./commands/admin");
 const slashCommands = require("./slash-commands");
 const { REACTION_ACCEPT } = require("./commands/admin");
 
@@ -67,6 +71,9 @@ async function initBot() {
                     break;
                 case slashCommands.ADMIN_CHANNEL_TRACK:
                     setChannelTrack(client, interaction, args);
+                    break;
+                case slashCommands.ADMIN_REFRESH_COMMANDS:
+                    refreshSlashCommands(client, interaction, args);
                     break;
                 case slashCommands.PLAYER_STATS:
                     if (args.hasOwnProperty(slashCommands.PLAYER_STATS_ME)) {
@@ -203,4 +210,4 @@ process.on("unhandledRejection", (reason, p) => {
     console.log(reason);
     console.log("Unhandled Rejection at: Promise", p, "reason:", reason);
     // application specific logging, throwing an error, or other logic here
-}); 
+});

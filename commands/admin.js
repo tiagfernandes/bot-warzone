@@ -21,13 +21,41 @@ async function setRoleAdmin(client, msg) {
     let tokens = util.tokenize(msg.content);
     let roleAdminId = /<@&([0-9]{10,})>/.exec(tokens[2])[1];
 
-    //TODO check if role_admin existe for this server, if existe check if author has role existing admin
+    try {
+        const server = await db.getServerById(msg.guild.id);
 
-    await db.setRoleAdminId(msg.guild.id, roleAdminId);
+        if (
+            server &&
+            server.role_admin_id &&
+            !msg.member.roles.cache.has(server.role_admin_id)
+        ) {
+            throw new Error(`You are not an Admin`);
+        }
 
-    msg.reply(`\nRole Admin save: <@&${roleAdminId}>`);
+        await db.setRoleAdminId(msg.guild.id, roleAdminId);
 
-    initSlashCommands(client, msg.guild.id, roleAdminId);
+        msg.reply(`\nRole Admin save: <@&${roleAdminId}>`);
+
+        initSlashCommands(client, msg.guild.id, roleAdminId);
+    } catch (err) {
+        console.error(err);
+        msg.reply(`\n${err.message}`);
+    }
+}
+
+/**
+ * Refresh slash commands from server
+ * Case new commands available
+ *
+ * @param {*} client
+ * @param {*} interaction
+ */
+async function refreshSlashCommands(client, interaction) {
+    const server = await db.getServerById(interaction.guild_id);
+
+    initSlashCommands(client, interaction.guild_id, server.role_admin_id);
+
+    util.replyInteraction(client, interaction, `Request had been noted`);
 }
 
 /**
@@ -99,5 +127,6 @@ module.exports = {
     setRolePlayer: setRolePlayer,
     setChannelInfo: setChannelInfo,
     setRoleAdmin: setRoleAdmin,
+    refreshSlashCommands: refreshSlashCommands,
     REACTION_ACCEPT: REACTION_ACCEPT,
 };
