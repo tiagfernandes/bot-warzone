@@ -25,33 +25,53 @@ const registrants = async (msg) => {
 /**
  * Register a user
  *
- * @param {*} msg
+ * @param {*} client
+ * @param {*} interaction
+ * @param {*} args
  */
-const registerUser = async (msg) => {
-    let tokens = util.tokenize(msg.content);
-    let username = tokens[3];
-    let platform = tokens[2];
+const registerUser = async (client, interaction, args) => {
+    const { platform, username } = args;
 
-    let user = await db.getUserFromChannel(msg.channel.id, username, platform);
+    let user = await db.getUserFromServer(
+        interaction.guild_id,
+        username,
+        platform
+    );
 
     if (user) {
-        msg.reply(`**${username}** (${platform}) already exist!`);
+        util.replyInteraction(
+            client,
+            interaction,
+            `**${username}** (${platform}) already exist!`
+        );
     } else {
         let player = await getPlayerProfile(platform, username);
+        console.log(player);
+        
         if (player) {
-            await db.addUserToChannel(
-                msg.channel.id,
-                player.username,
-                player.platform
-            );
-            await db.addUser(msg.author.id, player.username, player.platform);
+            db.addPlayer(interaction, player.username, player.platform)
+                .then(() => {
+                    console.log(`${player.username} (${player.platform}) registered`);
+                    util.replyInteraction(
+                        client,
+                        interaction,
+                        `**${player.username}** (${player.platform}) has been registered!`
+                    );
+                })
+                .catch((err) => {
+                    console.error(err);
 
-            msg.reply(
-                `**${player.username}** (${player.platform}) has been registered!`
-            );
+                    util.replyInteraction(
+                        client,
+                        interaction,
+                        `**${player.username}** (${player.platform}) already registered!`
+                    );
+                });
         } else {
-            msg.reply(
-                `**${username}** (${platform}) does not exist or private (see https://my.callofduty.com/fr/dashboard)!`
+            util.replyInteraction(
+                client,
+                interaction,
+                `**${username}** (${platform}) does not exist or private (see https://my.callofduty.com/fr/dashboard )!`
             );
         }
     }
@@ -60,39 +80,71 @@ const registerUser = async (msg) => {
 /**
  * Unregister a user
  */
-const unregisterUser = async (msg) => {
-    let tokens = util.tokenize(msg.content);
-    let username = tokens[3];
-    let platform = tokens[2];
+ const unregisterUser = async (client, interaction) => {
+    let user = await db.getUser(interaction.member.user.id);
 
-    let player = await db.getUserFromChannel(
-        msg.channel.id,
-        username,
-        platform
-    );
+    if (user) {
+        // Remove user
+        await db.removeUser(user._id);
 
-    if (player) {
-        await db.removeUserFromChannel(
-            msg.channel.id,
-            player.username,
-            player.platform
-        );
-        msg.reply(
-            `**${util.escapeMarkdown(player.username)}** (${
-                player.platform
-            }) has been unregistered!`
+        console.log(`UserId ${user._id} unregistered`);
+        util.replyInteraction(
+            client,
+            interaction,
+            `You has been unregistered!`
         );
     } else {
-        msg.reply(
-            `**${util.escapeMarkdown(
-                username
-            )}** (${platform}) has not been registered!`
-        );
+        util.replyInteraction(client, interaction, `You has not registed!`);
+    }
+};
+
+/**
+ * @param {*} client
+ * @param {*} interaction
+ * @param {*} args
+ */
+const changeUser = async (client, interaction, args) => {
+    const { platform, username } = args;
+
+    let user = await db.getUser(interaction.member.user.id);
+
+    if (user) {
+        let player = await getPlayerProfile(platform, username);
+
+        if (player) {
+            await db
+                .modifyPlayer(interaction, player.username, player.platform)
+                .then(() => {
+                    util.replyInteraction(
+                        client,
+                        interaction,
+                        `**${player.username}** (${player.platform}) has been updated!`
+                    );
+                })
+                .catch((err) => {
+                    console.error(err);
+
+                    util.replyInteraction(
+                        client,
+                        interaction,
+                        `**${player.username}** (${player.platform}) already registered!`
+                    );
+                });
+        } else {
+            util.replyInteraction(
+                client,
+                interaction,
+                `**${username}** (${platform}) does not exist or private (see https://my.callofduty.com/fr/dashboard )!`
+            );
+        }
+    } else {
+        util.replyInteraction(client, interaction, `You has not registed!`);
     }
 };
 
 module.exports = {
     registrants,
-    registerUser,
-    unregisterUser,
+    registerUser: registerUser,
+    changeUser: changeUser,
+    unregisterUser: unregisterUser,
 };

@@ -4,6 +4,10 @@ const env = process.env.NODE_ENV || "dev";
 
 const API = require("call-of-duty-api")();
 
+/**
+ * Login to Call-of-Duty API
+ * @returns
+ */
 async function login() {
     if (env == "dev") {
         if (!process.env.TOKEN_SSO_COOKIE) {
@@ -30,16 +34,30 @@ async function login() {
     }
 }
 
+/**
+ * @param {*} platform
+ * @param {*} username
+ * @returns
+ */
 const getPlayerProfile = async (platform, username) => {
     try {
-        await API.MWBattleData(username, platform);
-        return { username, platform };
-    } catch (Error) {
-        console.log(Error);
-        return false;
+        const wz = await API.MWwz(username, platform);
+        return {
+            username: wz.username,
+            platform: platform,
+        };
+    } catch (e) {
+        console.error(e);
+        return null;
     }
 };
 
+/**
+ *
+ * @param {*} platform
+ * @param {*} username
+ * @returns
+ */
 const getBattleRoyaleInfo = async (platform, username) => {
     try {
         let data = await API.MWBattleData(username, platform);
@@ -50,19 +68,20 @@ const getBattleRoyaleInfo = async (platform, username) => {
     }
 };
 
+/**
+ *
+ * @param {*} platform
+ * @param {*} username
+ * @return array
+ */
 const getBattleRoyaleMatchs = async (platform, username) => {
     let data = await API.MWcombatwz(username, platform);
-    return data.matches;
-};
-
-const getBattleInfoTest = async (platform, username) => {
-    return await API.MWwz(username, platform);
+    return data.matches ?? [];
 };
 
 module.exports = {
-    login,
-    getPlayerProfile,
-    getBattleRoyaleInfo,
-    getBattleRoyaleMatchs,
-    getBattleInfoTest,
+    login: login,
+    getPlayerProfile: getPlayerProfile,
+    getBattleRoyaleInfo: getBattleRoyaleInfo,
+    getBattleRoyaleMatchs: getBattleRoyaleMatchs,
 };
