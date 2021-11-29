@@ -8,7 +8,7 @@ const util = require("../util");
 
 const { getBattleRoyaleMatchs } = require("../cod-api");
 const { sendMatchesToChannelTrack } = require("./player");
-const { sendError } = require(__dirname + "./mailer");
+const { sendError } = require("../mailer");
 
 /**
  * Set a channel track for server

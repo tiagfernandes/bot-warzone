@@ -4,7 +4,7 @@ const moment = require("moment");
 const mongo = require("mongodb");
 const MongoClient = mongo.MongoClient;
 
-const { sendError } = require(__dirname + "./mailer");
+const { sendError } = require("./mailer");
 
 let _db = null;
 

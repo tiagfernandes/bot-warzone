@@ -4,7 +4,7 @@ const env = process.env.NODE_ENV || "dev";
 
 const API = require("call-of-duty-api")();
 
-const { sendError } = require(__dirname + "./mailer");
+const { sendError } = require("./mailer");
 
 /**
  * Login to Call-of-Duty API
