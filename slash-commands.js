@@ -9,6 +9,7 @@ const ADMIN_REFRESH_COMMANDS = "refresh-commands";
 const PLAYER_STATS = "stats";
 const PLAYER_STATS_ME = "me";
 const PLAYER_STATS_PLAYER = "player";
+const PLAYER_STATS_COMPARE = "compare";
 // !PLAYER
 
 // REGISTER
@@ -210,12 +211,31 @@ const initSlashCommands = async (client, guildId, roleAdminId) => {
                             },
                         ],
                     },
+                    {
+                        name: PLAYER_STATS_COMPARE,
+                        description: "Compare two players stats",
+                        type: 1,
+                        options: [
+                            {
+                                name: "first-player",
+                                description: "First Player",
+                                type: 6,
+                                required: true,
+                            },
+                            {
+                                name: "second-player",
+                                description: "Second Player",
+                                type: 6,
+                                required: true,
+                            },
+                        ],
+                    },
                 ],
             },
         })
         .then(() => {
             console.log("Command PLAYER " + PLAYER_STATS + " DONE");
-        });
+        }).catch(console.error);
     // !PLAYER
 
     // REGISTER
@@ -355,6 +375,7 @@ module.exports = {
     PLAYER_STATS: PLAYER_STATS,
     PLAYER_STATS_ME: PLAYER_STATS_ME,
     PLAYER_STATS_PLAYER: PLAYER_STATS_PLAYER,
+    PLAYER_STATS_COMPARE: PLAYER_STATS_COMPARE,
     REGISTER_REGISTER: REGISTER_REGISTER,
     REGISTER_UNREGISTER: REGISTER_UNREGISTER,
     REGISTER_CHANGE_PLAYER: REGISTER_CHANGE_PLAYER,
