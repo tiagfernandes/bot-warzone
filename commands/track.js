@@ -8,6 +8,7 @@ const util = require("../util");
 
 const { getBattleRoyaleMatchs } = require("../cod-api");
 const { sendMatchesToChannelTrack } = require("./player");
+const { sendError } = require(__dirname + "./mailer");
 
 /**
  * Set a channel track for server
@@ -106,6 +107,9 @@ const getMatchTracked = (client) => {
                                     );
                                 } else if (status == "rejected") {
                                     console.error(reason);
+                                    sendError(
+                                        `Error Track Match: ${reason}`
+                                    );
                                 }
                             })
                         );

@@ -4,6 +4,8 @@ const moment = require("moment");
 const mongo = require("mongodb");
 const MongoClient = mongo.MongoClient;
 
+const { sendError } = require(__dirname + "./mailer");
+
 let _db = null;
 
 const SERVER_COLLECTION = "server";
@@ -18,6 +20,7 @@ const init = async () => {
         _db = client.db(process.env.MONGO_DBNAME);
     } catch (e) {
         console.error(e);
+        sendError(`Error Connection MongoDB: ${e.message}`);
     }
 };
 

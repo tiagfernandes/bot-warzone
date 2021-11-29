@@ -4,6 +4,8 @@ const env = process.env.NODE_ENV || "dev";
 
 const API = require("call-of-duty-api")();
 
+const { sendError } = require(__dirname + "./mailer");
+
 /**
  * Login to Call-of-Duty API
  * @returns
@@ -48,6 +50,7 @@ const getPlayerProfile = async (platform, username) => {
         };
     } catch (e) {
         console.error(e);
+        sendError(`Error GetPlayerProfile: ${e.message}`);
         return null;
     }
 };
@@ -64,6 +67,7 @@ const getBattleRoyaleInfo = async (platform, username) => {
         return data.br;
     } catch (e) {
         console.error(e);
+        sendError(`Error GetBattleRoyaleInfo: ${e.message}`);
         return null;
     }
 };
