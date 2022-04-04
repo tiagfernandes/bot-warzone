@@ -51,6 +51,8 @@ async function initBot() {
 
             const args = {};
 
+            console.log({name, optionsData, command});
+
             if (optionsData) {
                 for (const option of optionsData) {
                     args[option.name] = {};
