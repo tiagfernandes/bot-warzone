@@ -14,7 +14,7 @@ const {
     track,
     untrack,
 } = require("./commands/track");
-const { stats } = require("./commands/player");
+const { stats, comparePlayer } = require("./commands/player");
 const {
     registerUser,
     changeUser,
@@ -51,13 +51,17 @@ async function initBot() {
 
             const args = {};
 
+            console.log({name, optionsData, command});
+
             if (optionsData) {
                 for (const option of optionsData) {
-                    const { name, value, options } = option;
-                    if (options) {
-                        args[name] = options[0].value;
+                    args[option.name] = {};
+                    if (option.options) {
+                        option.options.map(
+                            (opt) => (args[option.name][opt.name] = opt.value)
+                        );
                     } else {
-                        args[name] = value;
+                        args[option.name] = option.value;
                     }
                 }
             }
@@ -83,7 +87,25 @@ async function initBot() {
                         args.hasOwnProperty(slashCommands.PLAYER_STATS_PLAYER)
                     ) {
                         // Stats player
-                        stats(client, interaction, args["player"]);
+                        stats(
+                            client,
+                            interaction,
+                            args[slashCommands.PLAYER_STATS_PLAYER]["player"]
+                        );
+                    } else if (
+                        args.hasOwnProperty(slashCommands.PLAYER_STATS_COMPARE)
+                    ) {
+                        // Compare Players
+                        comparePlayer(
+                            client,
+                            interaction,
+                            args[slashCommands.PLAYER_STATS_COMPARE][
+                                "first-player"
+                            ],
+                            args[slashCommands.PLAYER_STATS_COMPARE][
+                                "second-player"
+                            ]
+                        );
                     }
                     break;
                 case slashCommands.REGISTER_REGISTER:
